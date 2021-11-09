@@ -1,0 +1,1 @@
+val node identity(a: int) returns (o: int)
