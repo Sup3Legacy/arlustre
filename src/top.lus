@@ -1,0 +1,19 @@
+--unsafe node on(pin: real) returns ( );
+
+%%%
+const lol = @import("issou.zig");
+%%%
+
+open Interface
+
+node max(a, b: int) returns (c: int);
+let
+   c = if a < b then b else a;
+tel;
+
+node main() returns (o: int);
+var i: int;
+let
+   i = declare_io(12, 5);
+   o = max(identity(0 + 1), 0);
+tel;

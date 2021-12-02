@@ -1,1 +1,3 @@
-val node identity(a: int) returns (o: int)
+external fun identity(a: int) returns (o: int)
+
+external fun declare_io(pin: int; mode: int) returns (b: int)

@@ -1,8 +1,0 @@
---unsafe node on(pin: real) returns ( );
-
-open Interface
-
-node main() returns (o: int);
-let
-   o = 0;
-tel;
