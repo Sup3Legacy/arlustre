@@ -32,7 +32,7 @@ pub fn main() void {
     Serial.init(115200);
     Serial.write("Hello, world!");
     //@panic("Ousp...");
-    //var index: u8 = 0;
+    var index: u8 = 0;
     delay();
     Serial.write_usize(@intCast(u8, interrupt.__ISR[12] >> 8));
     delay();
@@ -48,6 +48,13 @@ pub fn main() void {
             Serial.write_ch('x');
         }
         delay();
+        if (index == 20) {
+            timer.stop();
+        }
+        if (index == 25) {
+            timer.init_timer1(2_000_000);
+        }
+        index += 1;
         //gpio.DIGITAL_WRITE(13, .HIGH) catch {};
         //delay();
         

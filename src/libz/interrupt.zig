@@ -109,3 +109,54 @@ export fn _timer_int() callconv(.Naked) void {
     @import("../main.zig").toggle();
     asm volatile ("reti");
 } 
+
+/// Ext int 0
+export fn _int0() callconv(.Naked) noreturn {
+    while (true) {}
+}
+
+/// Ext int 1
+export fn _int1() callconv(.Naked) noreturn {
+    while (true) {}
+}
+
+/// Pin change int 0
+export fn _pcint0() callconv(.Naked) noreturn {
+    while (true) {}
+}
+
+/// Pin change int 1
+export fn _pcint1() callconv(.Naked) noreturn {
+    while (true) {}
+}
+
+/// Pin change int 2
+export fn _pcint2() callconv(.Naked) noreturn {
+    while (true) {}
+}
+
+/// Watchdog timeout
+export fn _wdt() callconv(.Naked) noreturn {
+    while (true) {}
+}
+
+// 7 0x000C WDT Watchdog Time-out Interrupt
+// 8 0x000E TIMER2 COMPA Timer/Counter2 Compare Match A
+// 9 0x0010 TIMER2 COMPB Timer/Counter2 Compare Match B
+// 10 0x0012 TIMER2 OVF Timer/Counter2 Overflow
+// 11 0x0014 TIMER1 CAPT Timer/Counter1 Capture Event
+// 12 0x0016 TIMER1 COMPA Timer/Counter1 Compare Match A
+// 13 0x0018 TIMER1 COMPB Timer/Coutner1 Compare Match B
+// 14 0x001A TIMER1 OVF Timer/Counter1 Overflow
+// 15 0x001C TIMER0 COMPA Timer/Counter0 Compare Match A
+// 16 0x001E TIMER0 COMPB Timer/Counter0 Compare Match B
+// 17 0x0020 TIMER0 OVF Timer/Counter0 Overflow
+// 18 0x0022 SPI, STC SPI Serial Transfer Complete
+// 19 0x0024 USART, RX USART Rx Complete
+// 20 0x0026 USART, UDRE USART, Data Register Empty
+// 21 0x0028 USART, TX USART, Tx Complete
+// 22 0x002A ADC ADC Conversion Complete
+// 23 0x002C EE READY EEPROM Ready
+// 24 0x002E ANALOG COMP Analog Comparator
+// 25 0x0030 TWI 2-wire Serial Interface
+// 0x0032 SPM READY Store Program Memory Ready

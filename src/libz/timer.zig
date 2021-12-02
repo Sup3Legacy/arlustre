@@ -54,6 +54,6 @@ pub fn stop() void {
     const TCCR1B = MMIO(0x81, u8, u8);
     const TIMSK1 = MMIO(0x6F, u8, u8);
 
-    TIMSK1.write(TIMSK1.read() & !(1 << 2));
+    TIMSK1.write(TIMSK1.read() & ~@as(u8, 1 << 2));
     TCCR1B.write(1 << 4);
 }
