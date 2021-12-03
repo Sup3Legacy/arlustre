@@ -6,14 +6,33 @@ const lol = @import("issou.zig");
 
 open Interface
 
-node max(a, b: int) returns (c: int);
+node count_true() returns (y: int);
 let
-   c = if a < b then b else a;
+   y = (0 fby y) + 1;
 tel;
 
-node main() returns (o: int);
-var i: int;
+node led(period: int; pin: int) returns (out: bool)
+var i : int;
+   statee : bool;
+   change : bool;
+   s : int;
 let
-   i = declare_io(12, 5);
-   o = max(identity(0 + 1), 0);
+   s = declare_io(pin, 1);
+   change = (modulo(count_true(), period) = 0);
+   statee = true -> 
+      (if change then (not (pre statee)) else (pre statee));
+   i = s ->
+      (if change
+      then change_pin_state(pin, statee)
+      else 0);
+   out = if change
+      then not (false fby out) 
+      else (false fby out);
+tel;
+
+node main() returns (o: bool);
+var i: bool;
+let
+   i = led(3, 2);
+   o = led(4, 3);
 tel;

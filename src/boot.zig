@@ -7,7 +7,8 @@ pub export fn _start() callconv(.Naked) noreturn {
     //@call(.{.modifier = .never_inline }, update_isr, .{});
     Libz.Interrupts.__ISR_LOADED = 0x69;
     Libz.Interrupts.sei();
-    @call(.{.modifier = .never_inline }, @import("main.zig").main, .{});
+
+    @call(.{.modifier = .never_inline }, @import("start.zig").bootstrap, .{});
     
     while(true) {}
 }

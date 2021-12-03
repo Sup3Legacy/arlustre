@@ -1,3 +1,5 @@
+const Libz = @import("libz.zig");
+
 pub inline fn sei() void {
     asm volatile ("sei" ::: "memory");
 }
@@ -106,7 +108,8 @@ export fn _unknown_interrupt() callconv(.Naked) noreturn {
 }
 
 export fn _timer_int() callconv(.Naked) void {
-    @import("../main.zig").toggle();
+    Libz.Serial.write_ch('x');
+    _ = @import("../main.zig").step();
     asm volatile ("reti");
 } 
 

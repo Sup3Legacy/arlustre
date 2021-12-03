@@ -1,3 +1,5 @@
-external fun identity(a: int) returns (o: int)
-
 external fun declare_io(pin: int; mode: int) returns (b: int)
+
+external fun change_pin_state(pin: int; mode: bool) returns (b: int)
+
+external fun modulo(a: int; b: int) returns (c: int)
