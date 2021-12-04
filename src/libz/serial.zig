@@ -75,9 +75,11 @@ pub fn write(data: []const u8) void {
 
 pub fn write_ch(ch: u8) void {
     // Wait till the transmit buffer is empty
+    @import("libz.zig").Interrupts.cli();
     while (UCSR0A.read().UDRE0 != 1) {}
 
     UDR0.write(.{ .TXB = ch });
+    @import("libz.zig").Interrupts.sei();
 }
 
 fn match_number(n: u4) u8 {
@@ -103,7 +105,27 @@ fn match_number(n: u4) u8 {
 
 pub fn write_usize(nb: u8) void {
     write_ch(match_number(@intCast(u4, nb >> 4)));
+    flush();
     write_ch(match_number(@intCast(u4, nb)));
+}
+
+pub fn write_u32(nb: u32) void {
+    write_ch(match_number(@intCast(u4, nb >> 28)));
+    flush();
+    write_ch(match_number(@intCast(u4, nb >> 24)));
+    flush();
+    write_ch(match_number(@intCast(u4, nb >> 20)));
+    flush();
+    write_ch(match_number(@intCast(u4, nb >> 16)));
+    flush();
+    write_ch(match_number(@intCast(u4, nb >> 12)));
+    flush();
+    write_ch(match_number(@intCast(u4, nb >> 8)));
+    flush();
+    write_ch(match_number(@intCast(u4, nb >> 4)));
+    flush();
+    write_ch(match_number(@intCast(u4, nb)));
+    flush();
 }
 
 pub fn flush() void {

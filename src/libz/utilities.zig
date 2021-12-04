@@ -1,3 +1,3 @@
 pub inline fn no_op() void {
-    asm volatile ("" ::: "memory");
+    asm volatile ("nop" ::: "memory");
 }

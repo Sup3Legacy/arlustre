@@ -57,3 +57,84 @@ pub fn stop() void {
     TIMSK1.write(TIMSK1.read() & ~@as(u8, 1 << 2));
     TCCR1B.write(1 << 4);
 }
+
+pub fn enable_timer0_clock_int() void {
+    const TIMSK0 = MMIO(0x6E, u8, u8);
+    const TCCR0A = MMIO(0x44, u8, u8); // here we add 0x20 to the address to account for the IO offset!
+    const TCCR0B = MMIO(0x45, u8, u8);
+
+    TCCR0A.write(@as(u8, 3));
+    TCCR0B.write(@as(u8, 3));
+
+    TIMSK0.write(TIMSK0.read() | @as(u8, 1));
+}
+
+pub fn disable_timer0_clock_int() void {
+    const TIMSK0 = MMIO(0x6E, u8, u8);
+
+    // Add TCCR0A and TCCR0B handling
+    TIMSK0.write(TIMSK0.read() & ~@as(u8, 1 << 0));
+}
+
+// Timer0 interrupt to keep track of µs time. 
+// Useful for various things including detecting time-sensitive events.
+
+const MICROSECONDS_PER_TIMER0_OVERFLOW: u32 = (64 * 256 / (Libz.CONSTANTS.UNO_clock_micros));
+
+// the whole number of milliseconds per timer0 overflow
+const MILLIS_INC: u32 = (MICROSECONDS_PER_TIMER0_OVERFLOW / 1000);
+
+// the fractional number of milliseconds per timer0 overflow. we shift right
+// by three to fit these numbers into a byte. (for the clock speeds we care
+// about - 8 and 16 MHz - this doesn't lose precision.)
+const FRACT_INC: u8 = @intCast(u8, (MICROSECONDS_PER_TIMER0_OVERFLOW % 1000) >> 3);
+const FRACT_MAX: u8 =  (1000 >> 3);
+
+var timer0_overflow_count: u32 = 0;
+var timer0_millis: u32 = 0;
+var timer0_fract: u8 = 0;
+
+/// To attach to the TIM0_OVF int
+pub fn timer0_overflow_int() callconv(.C) void {
+    var m: u32 = timer0_millis;
+    var f: u8 = timer0_fract;
+
+    m += MILLIS_INC;
+    f += FRACT_INC;
+    
+    if (f >= FRACT_MAX) {
+        f -= FRACT_MAX;
+        m += 1;
+    }
+    timer0_fract = f;
+    timer0_millis = m;
+    timer0_overflow_count +%= 1;
+}
+
+/// Returns the number of µs since the last power-up of the core
+pub fn micros() u32 {
+    
+    var m: u32 = 0;
+    var t: u8 = 0;
+    const SREG = MMIO(0x3F, u8, u8);
+    var oldSREG: u8 = SREG.read();
+
+    Libz.Interrupts.cli();
+
+
+    const TCNT0 = MMIO(0x46, u8, u8); // + 0x20
+    const TIFR0 = MMIO(0x35, u8, u8); 
+
+    
+
+    m = timer0_overflow_count;
+    t = TCNT0.read();
+
+    if ((t < 255) and ((TIFR0.read() & 1 << 0) != 0)) {
+        m += 1;
+    }
+    SREG.write(oldSREG);
+
+    //Libz.Interrupts.sei();
+    return ((m << 8) + @as(u32, t)) * (64 / Libz.CONSTANTS.UNO_clock_micros);
+}
