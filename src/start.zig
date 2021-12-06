@@ -1,3 +1,5 @@
+/// Second-stage bootstraping functions.
+
 const std = @import("std");
 const Libz = @import("./libz/libz.zig");
 const mmio = Libz.MmIO;
@@ -81,20 +83,7 @@ pub fn bootstrap() void {
     while(true) {}
 }
 
-pub fn reset() void {
-    Serial.init(115200);
-    var index: u8 = 0;
-    while (index < 3) : (index += 1) {
-        delay(100_000);
-        //gpio.DIGITAL_WRITE(13, .HIGH) catch {};
-        //delay();
-        //gpio.DIGITAL_WRITE(13, .LOW) catch {};
-        Serial.write(str2);
-        //Serial.write_ch('a');
-    }
-    while(true) {}
-}
-
+// Some delay
 pub fn delay(m: u32) void {
     //var old: u32 = Libz.Timer.micros();
     //while (Libz.Timer.micros() - old < m) {
@@ -123,13 +112,4 @@ pub fn delay(m: u32) void {
     //    \\ brne 1b 
     //    : [n] "=w" (n) : [n] "0" (n)// 2 cycles
     //);
-}
-
-pub fn panic(msg: []const u8, stack_trace: ?*std.builtin.StackTrace) noreturn {
-    interrupt.cli();
-    _ = stack_trace;
-    Serial.init(115200);
-    delay();
-    Serial.write(msg);
-    while (true) {}
 }

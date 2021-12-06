@@ -4,6 +4,8 @@ const Constants = Libz.CONSTANTS;
 
 const TIMER1_RESOLUTION: u64 = 65536;
 
+/// Enables the TIMER1 with teh given period.
+/// It will generate interrupts on TIMER1_B_COMP channel
 pub fn init_timer1(period: u64) void {
     // `period` is in µs.
     const ICR1 = MMIO(0x86, u16, u16);
@@ -16,6 +18,7 @@ pub fn init_timer1(period: u64) void {
     TCCR1A.write(0);
     TIMSK1.write(TIMSK1.read() | (1 << 2));
 
+    // Number of cycles in each period
     var cycles: u64 = ((Constants.UNO_clock_s/100_000 * period) / 20);
 
     var clockSelectBits: u8 = 0;
@@ -45,11 +48,14 @@ pub fn init_timer1(period: u64) void {
         pwmPeriod = TIMER1_RESOLUTION - 1;
     }
 
+    // Disable A overflow interrupt
     TCNT1.write(0);
     ICR1.write(@intCast(u16, pwmPeriod));
+    // Enable B overflow interrupt
     TCCR1B.write((1 << 4) | clockSelectBits);
 }
 
+/// Stop the TIMER1
 pub fn stop() void {
     const TCCR1B = MMIO(0x81, u8, u8);
     const TIMSK1 = MMIO(0x6F, u8, u8);
@@ -58,6 +64,10 @@ pub fn stop() void {
     TCCR1B.write(1 << 4);
 }
 
+/// Enable the TIMER0 interrupt with a pre-defined period
+/// It is not used by any direct user-purpose but is used
+/// to keep track of time on a small scale, e.g. to be
+/// used by the `micros` function
 pub fn enable_timer0_clock_int() void {
     const TIMSK0 = MMIO(0x6E, u8, u8);
     const TCCR0A = MMIO(0x44, u8, u8); // here we add 0x20 to the address to account for the IO offset!
@@ -69,12 +79,15 @@ pub fn enable_timer0_clock_int() void {
     TIMSK0.write(TIMSK0.read() | @as(u8, 1));
 }
 
+/// Disable the TIMER0 interrupt
 pub fn disable_timer0_clock_int() void {
     const TIMSK0 = MMIO(0x6E, u8, u8);
 
     // Add TCCR0A and TCCR0B handling
     TIMSK0.write(TIMSK0.read() & ~@as(u8, 1 << 0));
 }
+
+// This part is copied over from the Arduino C library
 
 // Timer0 interrupt to keep track of µs time. 
 // Useful for various things including detecting time-sensitive events.

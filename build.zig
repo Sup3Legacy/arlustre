@@ -8,7 +8,7 @@ pub fn build(b: *std.build.Builder) !void {
         .os_tag = .freestanding,
         .abi = .none,
     });
-    //exe.linkSystemLibrary("avr-libc");
+    //exe.linkSystemLibrary("c");
     exe.setBuildMode(.ReleaseSmall);
     exe.strip = true;
     exe.bundle_compiler_rt = false;

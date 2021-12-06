@@ -1,17 +1,22 @@
 const Libz = @import("libz.zig");
 
+/// Enable interrupts globaly
 pub inline fn sei() void {
     asm volatile ("sei" ::: "memory");
 }
 
+/// Disable interrupts globaly
 pub inline fn cli() void {
     asm volatile ("cli" ::: "memory");
 }
 
+/// Attach an ISR at runtime
+/// Not operational for now
 pub fn _attach_interrupt(id: usize, addr: usize) void {
     __ISR[id] = addr;
 }
 
+// Interrupt vector. Put at the right place by the linker
 comptime {
     asm (
         \\.section .vectors
@@ -44,6 +49,7 @@ comptime {
     );
 }
 
+/// Vain attempt at creating an universal ISR
 pub export fn _handle_ir() void {
     asm volatile (
         \\ push r18
@@ -90,10 +96,15 @@ pub export fn _handle_ir() void {
     ::: "r30", "r31");
 }
 
-// Hacky variable to check whether the .data segment has already been loaded into RAM. 
-// If not, the ISR no. 0 must jump directly to _start instead of reading garbage in __ISR
+/// Hacky variable to check whether the .data segment has already been loaded into RAM. 
+/// If not, the ISR no. 0 must jump directly to _start instead of reading garbage in __ISR
+/// This is because `__ISR` is located in the .Data segment. So any interrupt happening before
+/// this segment gets loaded into RAM would try to jump to whatever offset was at this place
+/// in memory before .data-loading
+/// Basically, if this variable isn't equal to `0x69`, we MUST NOT use anything from .data
 pub export var __ISR_LOADED: u16 = 0x69;
 
+/// runtime ISR-vector.
 pub export var __ISR = [_]usize{0x068} ** 28;
 
 pub fn init_ISR() void {
@@ -103,10 +114,16 @@ pub fn init_ISR() void {
     }
 }
 
+/// Fallback ISR
 export fn _unknown_interrupt() callconv(.Naked) noreturn {
     while (true) {}
 }
 
+/// TIMER1 interruption
+/// It should in the future use the runtime-attached ISR
+/// but for now it contains some testing-related things
+/// Essentially, each ISR must have the 
+/// `push; save SREG; call func; restore SREG; pop; asm("reti");` scheme
 export fn _timer_int() callconv(.Naked) void {
     push();
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
