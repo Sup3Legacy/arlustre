@@ -2,13 +2,12 @@ const Libz = @import("./libz/libz.zig");
 const std = @import("std");
 const Serial = Libz.Serial;
 
-
 /// Entry point of the program
 /// It initializes the memory and ISRs and then jumps into the 
 // bootstrap main function
 pub export fn _start() callconv(.Naked) noreturn {
-    @call(.{.modifier = .never_inline}, copy_data_to_ram, .{});
-    @call(.{.modifier = .never_inline}, clear_bss, .{});
+    @call(.{ .modifier = .never_inline }, copy_data_to_ram, .{});
+    @call(.{ .modifier = .never_inline }, clear_bss, .{});
     //@call(.{.modifier = .never_inline }, update_isr, .{});
 
     // Set ISR magic number
@@ -19,9 +18,9 @@ pub export fn _start() callconv(.Naked) noreturn {
     Libz.Interrupts.sei();
 
     // Jump to main code!
-    @call(.{.modifier = .never_inline }, @import("start.zig").bootstrap, .{});
-    
-    while(true) {}
+    @call(.{ .modifier = .never_inline }, @import("start.zig").bootstrap, .{});
+
+    while (true) {}
 }
 
 /// Override panic function
@@ -43,14 +42,13 @@ fn update_isr() void {
         \\ ldi r31, hi8(_start)
         \\ sts __ISR, r30
         \\ sts __ISR + 1, r31
-    ::: "r30", "r31");
-    
+        ::: "r30", "r31");
+
     //var ptr = @ptrCast(*volatile usize, &(@import("interrupt.zig").__ISR[0]));
     //var add = @ptrToInt(&(_start2));
     //ptr.* = add;
-    //@import("interrupt.zig").init_ISR();   
+    //@import("interrupt.zig").init_ISR();
 }
-
 
 /// Load the .Data segment into RAM. Highly important!
 fn copy_data_to_ram() void {
@@ -78,7 +76,7 @@ fn copy_data_to_ram() void {
         \\
         \\.ram_cpy_2:
         \\ pop r25
-    ::: "r30", "r31", "r28", "r29", "r26", "r27");
+        ::: "r30", "r31", "r28", "r29", "r26", "r27");
 }
 
 /// Clear the .bss segment. Maybe kinda secondary
@@ -105,6 +103,5 @@ fn clear_bss() void {
         \\
         \\.bss_clear_2:
         \\ pop r25
-    ::: "r28", "r29", "r26", "r27");
-    
+        ::: "r28", "r29", "r26", "r27");
 }

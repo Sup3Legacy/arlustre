@@ -84,22 +84,54 @@ pub fn write_ch(ch: u8) void {
 
 fn match_number(n: u4) u8 {
     switch (n) {
-        0 => {return '0';},
-        1 => {return '1';},
-        2 => {return '2';},
-        3 => {return '3';},
-        4 => {return '4';},
-        5 => {return '5';},
-        6 => {return '6';},
-        7 => {return '7';},
-        8 => {return '8';},
-        9 => {return '9';},
-        10 => {return 'a';},
-        11 => {return 'b';},
-        12 => {return 'c';},
-        13 => {return 'd';},
-        14 => {return 'e';},
-        15 => {return 'f';},
+        0 => {
+            return '0';
+        },
+        1 => {
+            return '1';
+        },
+        2 => {
+            return '2';
+        },
+        3 => {
+            return '3';
+        },
+        4 => {
+            return '4';
+        },
+        5 => {
+            return '5';
+        },
+        6 => {
+            return '6';
+        },
+        7 => {
+            return '7';
+        },
+        8 => {
+            return '8';
+        },
+        9 => {
+            return '9';
+        },
+        10 => {
+            return 'a';
+        },
+        11 => {
+            return 'b';
+        },
+        12 => {
+            return 'c';
+        },
+        13 => {
+            return 'd';
+        },
+        14 => {
+            return 'e';
+        },
+        15 => {
+            return 'f';
+        },
     }
 }
 
@@ -110,7 +142,7 @@ pub fn write_usize(nb: u8) void {
 }
 
 pub fn write_u32(nb: u32) void {
-    write_ch(match_number(@intCast(u4, nb >> 28)));
+    write_ch(match_number(@intCast(u4, nb / 28)));
     flush();
     write_ch(match_number(@intCast(u4, nb >> 24)));
     flush();
@@ -136,8 +168,8 @@ pub fn flush() void {
 
 pub fn end() void {
     flush();
-    UCSR0B.write(.{.RXEN0 = 0});
-    UCSR0B.write(.{.TXEN0 = 0});
-    UCSR0B.write(.{.RXCIE0 = 0});
-    UCSR0B.write(.{.UDRIE0 = 0});
+    UCSR0B.write(.{ .RXEN0 = 0 });
+    UCSR0B.write(.{ .TXEN0 = 0 });
+    UCSR0B.write(.{ .RXCIE0 = 0 });
+    UCSR0B.write(.{ .UDRIE0 = 0 });
 }

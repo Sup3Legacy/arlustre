@@ -11,7 +11,7 @@ pub fn init_timer1(period: u64) void {
     const ICR1 = MMIO(0x86, u16, u16);
     const TCNT1 = MMIO(0x84, u16, u16);
     const TCCR1B = MMIO(0x81, u8, u8);
-    const TCCR1A = MMIO(0x80, u8, u8); 
+    const TCCR1A = MMIO(0x80, u8, u8);
     const TIMSK1 = MMIO(0x6F, u8, u8);
 
     TCCR1B.write(1 << 4);
@@ -19,7 +19,7 @@ pub fn init_timer1(period: u64) void {
     TIMSK1.write(TIMSK1.read() | (1 << 2));
 
     // Number of cycles in each period
-    var cycles: u64 = ((Constants.UNO_clock_s/100_000 * period) / 20);
+    var cycles: u64 = ((Constants.UNO_clock_s / 100_000 * period) / 20);
 
     var clockSelectBits: u8 = 0;
     var pwmPeriod: u64 = 0;
@@ -27,20 +27,16 @@ pub fn init_timer1(period: u64) void {
     if (cycles < TIMER1_RESOLUTION) {
         clockSelectBits = 1 << 0;
         pwmPeriod = cycles;
-    } else
-    if (cycles < TIMER1_RESOLUTION * 8) {
+    } else if (cycles < TIMER1_RESOLUTION * 8) {
         clockSelectBits = 1 << 1;
         pwmPeriod = cycles / 8;
-    } else
-    if (cycles < TIMER1_RESOLUTION * 64) {
+    } else if (cycles < TIMER1_RESOLUTION * 64) {
         clockSelectBits = 1 << 1 | 1 << 0;
         pwmPeriod = cycles / 64;
-    } else
-    if (cycles < TIMER1_RESOLUTION * 256) {
+    } else if (cycles < TIMER1_RESOLUTION * 256) {
         clockSelectBits = 1 << 2;
         pwmPeriod = cycles / 256;
-    } else
-    if (cycles < TIMER1_RESOLUTION * 1024) {
+    } else if (cycles < TIMER1_RESOLUTION * 1024) {
         clockSelectBits = 1 << 2 | 1 << 0;
         pwmPeriod = cycles / 1024;
     } else {
@@ -89,7 +85,7 @@ pub fn disable_timer0_clock_int() void {
 
 // This part is copied over from the Arduino C library
 
-// Timer0 interrupt to keep track of µs time. 
+// Timer0 interrupt to keep track of µs time.
 // Useful for various things including detecting time-sensitive events.
 
 const MICROSECONDS_PER_TIMER0_OVERFLOW: u32 = (64 * 256 / (Libz.CONSTANTS.UNO_clock_micros));
@@ -101,7 +97,7 @@ const MILLIS_INC: u32 = (MICROSECONDS_PER_TIMER0_OVERFLOW / 1000);
 // by three to fit these numbers into a byte. (for the clock speeds we care
 // about - 8 and 16 MHz - this doesn't lose precision.)
 const FRACT_INC: u8 = @intCast(u8, (MICROSECONDS_PER_TIMER0_OVERFLOW % 1000) >> 3);
-const FRACT_MAX: u8 =  (1000 >> 3);
+const FRACT_MAX: u8 = (1000 >> 3);
 
 var timer0_overflow_count: u32 = 0;
 var timer0_millis: u32 = 0;
@@ -114,7 +110,7 @@ pub fn timer0_overflow_int() callconv(.C) void {
 
     m += MILLIS_INC;
     f += FRACT_INC;
-    
+
     if (f >= FRACT_MAX) {
         f -= FRACT_MAX;
         m += 1;
@@ -126,7 +122,6 @@ pub fn timer0_overflow_int() callconv(.C) void {
 
 /// Returns the number of µs since the last power-up of the core
 pub fn micros() u32 {
-    
     var m: u32 = 0;
     var t: u8 = 0;
     const SREG = MMIO(0x3F, u8, u8);
@@ -134,11 +129,8 @@ pub fn micros() u32 {
 
     Libz.Interrupts.cli();
 
-
     const TCNT0 = MMIO(0x46, u8, u8); // + 0x20
-    const TIFR0 = MMIO(0x35, u8, u8); 
-
-    
+    const TIFR0 = MMIO(0x35, u8, u8);
 
     m = timer0_overflow_count;
     t = TCNT0.read();

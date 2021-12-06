@@ -1,5 +1,4 @@
 /// Second-stage bootstraping functions.
-
 const std = @import("std");
 const Libz = @import("./libz/libz.zig");
 const mmio = Libz.MmIO;
@@ -14,7 +13,7 @@ const main = @import("main.zig");
 var str = "Hello, world!\n\r";
 var str2 = "Hi!\n\r";
 
-var lol = [_]u8{0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+var lol = [_]u8{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 var on: bool = false;
 
@@ -32,11 +31,9 @@ pub fn bootstrap() void {
     Serial.init(115200);
     Serial.write("Hello, world!");
 
-    
     //interrupt._attach_interrupt(12, @ptrToInt(toggle));
     //_ = @import("main.zig").main();
-    
-    
+
     //@panic("Ousp...");
     //var index: u8 = 0;
     timer.enable_timer0_clock_int();
@@ -51,7 +48,7 @@ pub fn bootstrap() void {
 
     interrupt.sei();
     timer.init_timer1(75_000);
-    
+
     while (true) {
         Serial.write_u32(timer.micros());
         Serial.write_ch('\n');
@@ -74,13 +71,13 @@ pub fn bootstrap() void {
     //    index += 1;
     //    //gpio.DIGITAL_WRITE(13, .HIGH) catch {};
     //    //delay();
-    //    
+    //
     //    //delay();
     //    //gpio.DIGITAL_WRITE(13, .LOW) catch {};
     //    //Serial.write(str);
     //    //Serial.write_ch('a');
     //}
-    while(true) {}
+    while (true) {}
 }
 
 // Some delay
@@ -98,18 +95,17 @@ pub fn delay(m: u32) void {
     }
     //Libz.Interrupts.sei();
 
-
     //var n: u16 = m;
     //if (n <= 1) {
     //    return;
     //}
-//
+    //
     //n = (n << 1) + n; // x3 us, = 5 cycles
-//
+    //
     //n -= 5; //2 cycles
     //asm volatile (
     //    \\1: sbiw %0, 1
-    //    \\ brne 1b 
+    //    \\ brne 1b
     //    : [n] "=w" (n) : [n] "0" (n)// 2 cycles
     //);
 }

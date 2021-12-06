@@ -8,11 +8,11 @@ pub fn build(b: *std.build.Builder) !void {
         .os_tag = .freestanding,
         .abi = .none,
     });
-    //exe.linkSystemLibrary("c");
+    //exe.linkSystemLibrary("lib-gcc");
     exe.setBuildMode(.ReleaseSmall);
     exe.strip = true;
     exe.bundle_compiler_rt = false;
     exe.setLinkerScriptPath(std.build.FileSource{ .path = "src/linker.ld" });
-    
+
     exe.install();
 }

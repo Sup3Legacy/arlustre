@@ -93,7 +93,7 @@ pub export fn _handle_ir() void {
         \\ pop r19
         \\ pop r18
         \\ reti
-    ::: "r30", "r31");
+        ::: "r30", "r31");
 }
 
 /// Hacky variable to check whether the .data segment has already been loaded into RAM. 
@@ -136,7 +136,7 @@ export fn _timer_int() callconv(.Naked) void {
     pop();
 
     asm volatile ("reti");
-} 
+}
 
 /// Ext int 0
 export fn _int0() callconv(.Naked) noreturn {
@@ -202,7 +202,7 @@ export fn _tim0_ovf() callconv(.Naked) void {
 // 0x0032 SPM READY Store Program Memory Ready
 
 pub fn pop() void {
-     asm volatile (
+    asm volatile (
         \\ pop r31
         \\ pop r30
         \\ pop r29

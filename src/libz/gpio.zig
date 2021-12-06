@@ -1,15 +1,15 @@
 const __MMIO = @import("mmio.zig").__MMIO;
 
-const PINB =  __MMIO(0x23, u8);
-const DDRB =  __MMIO(0x24, u8);
+const PINB = __MMIO(0x23, u8);
+const DDRB = __MMIO(0x24, u8);
 const PORTB = __MMIO(0x25, u8);
 
-const PINC =  __MMIO(0x26, u8);
-const DDRC =  __MMIO(0x27, u8);
+const PINC = __MMIO(0x26, u8);
+const DDRC = __MMIO(0x27, u8);
 const PORTC = __MMIO(0x28, u8);
 
-const PIND =  __MMIO(0x29, u8);
-const DDRD =  __MMIO(0x2A, u8);
+const PIND = __MMIO(0x29, u8);
+const DDRD = __MMIO(0x2A, u8);
 const PORTD = __MMIO(0x2B, u8);
 
 const PORT_MODE = enum {
@@ -23,7 +23,7 @@ const VALUE = enum {
     HIGH,
 };
 
-const GPIO_ERROR = error {
+const GPIO_ERROR = error{
     NON_EXISTING_DIGITAL_PIN,
     NON_EXISTING_ANALOGIC_PIN,
     PWM_NOT_SUPPORTED,
@@ -60,7 +60,7 @@ pub fn DIGITAL_MODE(pin_id: u8, mode: PORT_MODE) GPIO_ERROR!void {
         },
         else => {
             return GPIO_ERROR.NON_EXISTING_DIGITAL_PIN;
-        }
+        },
     }
 }
 
@@ -89,6 +89,6 @@ pub fn DIGITAL_WRITE(pin_id: u8, value: VALUE) GPIO_ERROR!void {
         },
         else => {
             return GPIO_ERROR.NON_EXISTING_DIGITAL_PIN;
-        }
+        },
     }
 }
