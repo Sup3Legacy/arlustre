@@ -60,6 +60,6 @@ let
    j = declare_io(5, 0);
    on_off = toggle_node(read_pin_state(5));
    i = led(3, 2, on_off);
-   k = led(7, 3, true);
+   k = led(15, 3, true);
    o = led_control(4, read_pin_state(5));
 tel;

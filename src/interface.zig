@@ -16,7 +16,9 @@ pub fn change_pin_state_step(pin: isize, state: bool, out: *change_pin_state_out
 }
 
 pub fn read_pin_state_step(pin: isize, out: *read_pin_state_out) void {
-    out.b = Libz.GpIO.DIGITAL_READ(@intCast(u8, pin)) catch {return;} == .HIGH;
+    out.b = Libz.GpIO.DIGITAL_READ(@intCast(u8, pin)) catch {
+        return;
+    } == .HIGH;
 }
 
 pub fn declare_io_step(pin: isize, mode: isize, out: *declare_io_out) void {
