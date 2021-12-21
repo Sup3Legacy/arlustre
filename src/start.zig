@@ -32,7 +32,7 @@ pub fn bootstrap() void {
     Serial.write("Hello, world!");
 
     //interrupt._attach_interrupt(12, @ptrToInt(toggle));
-    //_ = @import("main.zig").main();
+    _ = @import("main.zig").main();
 
     //@panic("Ousp...");
     //var index: u8 = 0;
@@ -49,12 +49,12 @@ pub fn bootstrap() void {
     interrupt.sei();
     timer.init_timer1(75_000);
 
-    while (true) {
-        Serial.write_u32(timer.micros());
-        Serial.write_ch('\n');
-        Serial.write_ch('\r');
-        delay(100_000);
-    }
+    //while (true) {
+    //    Serial.write_u32(timer.micros());
+    //    Serial.write_ch('\n');
+    //    Serial.write_ch('\r');
+    //    delay(100_000);
+    //}
     //while (true) {
     //    if (on) {
     //        Serial.write_ch('o');

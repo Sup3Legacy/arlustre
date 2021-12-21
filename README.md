@@ -2,7 +2,10 @@
 
 (WIP)
 
-Arduino interface for the Heptagon synchronous dataflow-oriented language written in Zig. It should provide a kinda-low-level interface to any heptagon program, through the custom Heptagon Zig backend. The whole low-level Arduino core-library is implemented using Zig.
+Arduino interface for the Heptagon synchronous dataflow-oriented language written in Zig. It should provide a kinda-low-level interface to any heptagon program, through the custom
+
+
+ Heptagon Zig backend. The whole low-level Arduino core-library is implemented using Zig.
 
 Non-exhaustive list of functionning features:
 

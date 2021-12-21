@@ -6,7 +6,7 @@ const TIMER1_RESOLUTION: u64 = 65536;
 
 /// Enables the TIMER1 with teh given period.
 /// It will generate interrupts on TIMER1_B_COMP channel
-pub fn init_timer1(period: u64) void {
+pub fn init_timer1(comptime period: u64) void {
     // `period` is in µs.
     const ICR1 = MMIO(0x86, u16, u16);
     const TCNT1 = MMIO(0x84, u16, u16);
@@ -19,7 +19,7 @@ pub fn init_timer1(period: u64) void {
     TIMSK1.write(TIMSK1.read() | (1 << 2));
 
     // Number of cycles in each period
-    var cycles: u64 = ((Constants.UNO_clock_s / 100_000 * period) / 20);
+    comptime var cycles = ((Constants.UNO_clock_s / 100_000 * period) / 20);
 
     var clockSelectBits: u8 = 0;
     var pwmPeriod: u64 = 0;
@@ -135,11 +135,12 @@ pub fn micros() u32 {
     m = timer0_overflow_count;
     t = TCNT0.read();
 
-    if ((t < 255) and ((TIFR0.read() & 1 << 0) != 0)) {
+    if ((t < 255) and ((TIFR0.read() & 1) != 0)) {
         m += 1;
     }
     SREG.write(oldSREG);
 
     //Libz.Interrupts.sei();
-    return ((m << 8) + @as(u32, t)) * (64 / Libz.CONSTANTS.UNO_clock_micros);
+    return 0;
+    //return ((m << 8) + @as(u32, t));// * (64 / Libz.CONSTANTS.UNO_clock_micros);
 }

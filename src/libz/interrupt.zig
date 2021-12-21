@@ -129,8 +129,8 @@ export fn _timer_int() callconv(.Naked) void {
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     var oldSREG: u8 = SREG.read();
 
-    Libz.Serial.write_ch('x');
-    //_ = @import("../main.zig").step();
+    //Libz.Serial.write_ch('x');
+    _ = @import("../main.zig").step();
 
     SREG.write(oldSREG);
     pop();

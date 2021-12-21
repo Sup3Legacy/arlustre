@@ -27,6 +27,8 @@ const GPIO_ERROR = error{
     NON_EXISTING_DIGITAL_PIN,
     NON_EXISTING_ANALOGIC_PIN,
     PWM_NOT_SUPPORTED,
+    CANT_READ_OUTPUT,
+    CANT_WRITE_INPUT,
 };
 
 // int to bit
@@ -64,6 +66,35 @@ pub fn DIGITAL_MODE(pin_id: u8, mode: PORT_MODE) GPIO_ERROR!void {
     }
 }
 
+pub fn READ_DIGITAL_MODE(pin_id: u8) GPIO_ERROR!PORT_MODE {
+    switch (pin_id) {
+        0...7 => {
+            if (DDRD.read() & itb(pin_id) != 0) {
+                return .INPUT;
+            } else {
+                return .OUTPUT;
+            }
+        },
+        8...13 => {
+            if (DDRB.read() & itb(pin_id) != 0) {
+                return .INPUT;
+            } else {
+                return .OUTPUT;
+            }
+        },
+        14...19 => {
+            if (DDRC.read() & itb(pin_id) != 0) {
+                return .INPUT;
+            } else {
+                return .OUTPUT;
+            }
+        },
+        else => {
+            return GPIO_ERROR.NON_EXISTING_DIGITAL_PIN;
+        },
+    }
+}
+
 pub fn DIGITAL_WRITE(pin_id: u8, value: VALUE) GPIO_ERROR!void {
     switch (pin_id) {
         0...7 => {
@@ -85,6 +116,39 @@ pub fn DIGITAL_WRITE(pin_id: u8, value: VALUE) GPIO_ERROR!void {
                 PORTC.write(PORTC.read() | itb(pin_id));
             } else {
                 PORTC.write(PORTC.read() & ~itb(pin_id));
+            }
+        },
+        else => {
+            return GPIO_ERROR.NON_EXISTING_DIGITAL_PIN;
+        },
+    }
+}
+
+pub fn DIGITAL_READ(pin_id: u8) GPIO_ERROR!VALUE {
+    var is_input = READ_DIGITAL_MODE(pin_id) catch  .INPUT;
+    if (is_input != .INPUT) {
+        return GPIO_ERROR.CANT_READ_OUTPUT;
+    }
+    switch (pin_id) {
+        0...7 => {
+            if (PIND.read() & itb(pin_id) != 0) {
+                return .HIGH;
+            } else {
+                return .LOW;
+            }
+        },
+        8...13 => {
+            if (PINB.read() & itb(pin_id) != 0) {
+                return .HIGH;
+            } else {
+                return .LOW;
+            }
+        },
+        14...19 => {
+            if (PINC.read() & itb(pin_id) != 0) {
+                return .HIGH;
+            } else {
+                return .LOW;
             }
         },
         else => {
