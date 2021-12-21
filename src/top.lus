@@ -51,6 +51,9 @@ let
    out = true;
 tel;
 
+-- Hardware setup :
+-- LED on pins 2, 3, 4 (configured as OUTPUT)
+-- Button on pin 5 (configured as INPUT)
 node main() returns (o: bool);
 var i: bool;
    j: int;

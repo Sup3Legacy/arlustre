@@ -1,7 +1,4 @@
-all:
-	cd src;
-	zig build upload;
-	cd ..;
+all: clean
 
 clean:
 	rm src/*.epci -f
