@@ -24,7 +24,7 @@ Things I have achieved for now :
 ## Prerequisites 
 
 - `ocaml` and some other `opam` libraries to compile my custom fork of `heptagon` (available as a submodule).
-- `zig` version >= 9 as of now (I use the `edge` channel from `snap` so `0.10.0-dev.2+ea913846c` as of writing)
+- `zig` version >= `0.9` as of now (I use the `edge` channel from `snap` so `0.10.0-dev.2+ea913846c` as of writing)
 - `screen`
 - `avrdude`
   
