@@ -99,7 +99,7 @@ const MILLIS_INC: u32 = (MICROSECONDS_PER_TIMER0_OVERFLOW / 1000);
 const FRACT_INC: u8 = @intCast(u8, (MICROSECONDS_PER_TIMER0_OVERFLOW % 1000) >> 3);
 const FRACT_MAX: u8 = (1000 >> 3);
 
-var timer0_overflow_count: u32 = 0;
+pub var timer0_overflow_count: u32 = 0;
 var timer0_millis: u32 = 0;
 var timer0_fract: u8 = 0;
 
@@ -108,8 +108,8 @@ pub fn timer0_overflow_int() callconv(.C) void {
     var m: u32 = timer0_millis;
     var f: u8 = timer0_fract;
 
-    m += MILLIS_INC;
-    f += FRACT_INC;
+    m +%= MILLIS_INC;
+    f +%= FRACT_INC;
 
     if (f >= FRACT_MAX) {
         f -= FRACT_MAX;
@@ -117,7 +117,7 @@ pub fn timer0_overflow_int() callconv(.C) void {
     }
     timer0_fract = f;
     timer0_millis = m;
-    timer0_overflow_count += 1;
+    timer0_overflow_count +%= 1;
 }
 
 /// Returns the number of µs since the last power-up of the core
