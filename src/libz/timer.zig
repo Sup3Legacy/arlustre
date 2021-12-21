@@ -113,11 +113,11 @@ pub fn timer0_overflow_int() callconv(.C) void {
 
     if (f >= FRACT_MAX) {
         f -= FRACT_MAX;
-        m += 1;
+        m +%= 1;
     }
     timer0_fract = f;
     timer0_millis = m;
-    timer0_overflow_count +%= 1;
+    timer0_overflow_count += 1;
 }
 
 /// Returns the number of µs since the last power-up of the core

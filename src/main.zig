@@ -13,6 +13,6 @@ pub fn main() isize {
 }
 
 pub fn step() void {
-    step_zig = (step_zig + 1);
+    step_zig = (step_zig +% 1);
     Top.Top__main_step(&_res, &mem);
 }

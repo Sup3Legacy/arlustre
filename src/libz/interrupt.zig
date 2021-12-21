@@ -20,7 +20,7 @@ pub fn _attach_interrupt(id: usize, addr: usize) void {
 comptime {
     asm (
         \\.section .vectors
-        \\ jmp _handle_ir
+        \\ jmp _start
         \\ jmp _unknown_interrupt
         \\ jmp _unknown_interrupt
         \\ jmp _unknown_interrupt
@@ -31,11 +31,11 @@ comptime {
         \\ jmp _unknown_interrupt
         \\ jmp _timer_int
         \\ jmp _timer_int
-        \\ jmp _timer_int
-        \\ jmp _timer_int 
-        \\ jmp _timer_int
-        \\ jmp _unknown_interrupt
-        \\ jmp _unknown_interrupt
+        \\ jmp _tim1_compa
+        \\ jmp _tim1_compb 
+        \\ jmp _tim1_ovf
+        \\ jmp _tim0_compa
+        \\ jmp _tim0_compb
         \\ jmp _tim0_ovf
         \\ jmp _unknown_interrupt
         \\ jmp _unknown_interrupt
@@ -140,44 +140,116 @@ export fn _timer_int() callconv(.Naked) void {
 
 /// Ext int 0
 export fn _int0() callconv(.Naked) noreturn {
-    while (true) {}
+    SREG.write(oldSREG);
+    pop();
+
+    asm volatile ("reti");
 }
 
 /// Ext int 1
 export fn _int1() callconv(.Naked) noreturn {
-    while (true) {}
+    SREG.write(oldSREG);
+    pop();
+
+    asm volatile ("reti");
 }
 
 /// Pin change int 0
 export fn _pcint0() callconv(.Naked) noreturn {
-    while (true) {}
+    SREG.write(oldSREG);
+    pop();
+
+    asm volatile ("reti");
 }
 
 /// Pin change int 1
 export fn _pcint1() callconv(.Naked) noreturn {
-    while (true) {}
+    SREG.write(oldSREG);
+    pop();
+
+    asm volatile ("reti");
 }
 
 /// Pin change int 2
 export fn _pcint2() callconv(.Naked) noreturn {
-    while (true) {}
+    SREG.write(oldSREG);
+    pop();
+
+    asm volatile ("reti");
 }
 
 /// Watchdog timeout
 export fn _wdt() callconv(.Naked) noreturn {
-    while (true) {}
+    SREG.write(oldSREG);
+    pop();
+
+    asm volatile ("reti");
 }
 
 // 7 0x000C WDT Watchdog Time-out Interrupt
 // 8 0x000E TIMER2 COMPA Timer/Counter2 Compare Match A
+export fn _wdt() callconv(.Naked) noreturn {
+    SREG.write(oldSREG);
+    pop();
+
+    asm volatile ("reti");
+}
 // 9 0x0010 TIMER2 COMPB Timer/Counter2 Compare Match B
+export fn _wdt() callconv(.Naked) noreturn {
+    SREG.write(oldSREG);
+    pop();
+
+    asm volatile ("reti");
+}
 // 10 0x0012 TIMER2 OVF Timer/Counter2 Overflow
+export fn _wdt() callconv(.Naked) noreturn {
+    SREG.write(oldSREG);
+    pop();
+
+    asm volatile ("reti");
+}
 // 11 0x0014 TIMER1 CAPT Timer/Counter1 Capture Event
+export fn _wdt() callconv(.Naked) noreturn {
+    SREG.write(oldSREG);
+    pop();
+
+    asm volatile ("reti");
+}
 // 12 0x0016 TIMER1 COMPA Timer/Counter1 Compare Match A
+export fn _tim1_compa() callconv(.Naked) noreturn {
+    SREG.write(oldSREG);
+    pop();
+
+    asm volatile ("reti");
+}
 // 13 0x0018 TIMER1 COMPB Timer/Coutner1 Compare Match B
+export fn _tim1_compb() callconv(.Naked) noreturn {
+    SREG.write(oldSREG);
+    pop();
+
+    asm volatile ("reti");
+}
 // 14 0x001A TIMER1 OVF Timer/Counter1 Overflow
+export fn _tim1_ovf() callconv(.Naked) noreturn {
+    SREG.write(oldSREG);
+    pop();
+
+    asm volatile ("reti");
+}
 // 15 0x001C TIMER0 COMPA Timer/Counter0 Compare Match A
+export fn _tim0_compa() callconv(.Naked) noreturn {
+    SREG.write(oldSREG);
+    pop();
+
+    asm volatile ("reti");
+}
 // 16 0x001E TIMER0 COMPB Timer/Counter0 Compare Match B
+export fn _tim0_compb() callconv(.Naked) noreturn {
+    SREG.write(oldSREG);
+    pop();
+
+    asm volatile ("reti");
+}
 // 17 0x0020 TIMER0 OVF Timer/Counter0 Overflow
 export fn _tim0_ovf() callconv(.Naked) void {
     push();

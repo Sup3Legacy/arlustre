@@ -69,10 +69,10 @@ pub fn build(b: *std.build.Builder) !void {
     const screen_command = b.addSystemCommand(&.{
         "screen",
         "/dev/ttyACM0",
-        "115200",
+        "19200",
     });
     screen.dependOn(&screen_command.step);
-    screen_command.step.dependOn(&exe.install_step.?.step);
+    screen_command.step.dependOn(&avrdude.step);
 
     const all = b.step("all", "Builds everything, uploads the program and opens the screen.");
     all.dependOn(&screen_command.step);

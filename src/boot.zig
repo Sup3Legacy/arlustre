@@ -15,11 +15,12 @@ pub export fn _start() callconv(.Naked) noreturn {
     Libz.Interrupts.__ISR_LOADED = 0x69;
 
     // Enable interrupts globaly
-    Libz.Interrupts.sei();
+    //Libz.Interrupts.sei();
 
     // Jump to main code!
+    //@panic("Lolz");
     @call(.{ .modifier = .never_inline }, @import("start.zig").bootstrap, .{});
-
+    
     while (true) {}
 }
 
@@ -27,11 +28,11 @@ pub export fn _start() callconv(.Naked) noreturn {
 pub fn panic(msg: []const u8, stack_trace: ?*std.builtin.StackTrace) noreturn {
     Libz.Interrupts.cli();
     _ = stack_trace;
-    Serial.init(115200);
+    Serial.init(19200);
     @import("start.zig").delay(100_000);
     Serial.write(msg);
     @import("start.zig").delay(100_000);
-    Serial.write("___fault (kernel dumped).\nWe're not using any C code but it somehow crashed anyway...");
+    Serial.write("\n\r___fault (kernel dumped).\n\rWe're not using any C code but it somehow crashed anyway...");
     while (true) {}
 }
 

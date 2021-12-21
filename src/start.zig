@@ -28,15 +28,17 @@ pub fn toggle() callconv(.C) void {
 }
 
 pub fn bootstrap() void {
-    Serial.init(115200);
-    Serial.write("Hello, world!");
+    delay(100_000);
+    Serial.init(19200);
+    delay(100_000);
+    Serial.write(str);
 
     //interrupt._attach_interrupt(12, @ptrToInt(toggle));
     _ = @import("main.zig").main();
-
+    timer.enable_timer0_clock_int();
     //@panic("Ousp...");
     //var index: u8 = 0;
-    timer.enable_timer0_clock_int();
+
     delay(100_000);
     Serial.write_usize(@intCast(u8, interrupt.__ISR[12] >> 8));
     delay(100_000);
