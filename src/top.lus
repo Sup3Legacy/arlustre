@@ -1,10 +1,12 @@
---unsafe node on(pin: real) returns ( );
-
-%%%
-const lol = @import("issou.zig");
-%%%
-
 open Interface
+
+-- Enables to only declare the io once.
+node declare_once(port: int; direction: int) returns(out: int)
+var i: bool;
+let
+   i = true fby false;
+   out = if i then declare_io(port, direction) else 0;
+tel;
 
 node count_true() returns (y: int);
 let
@@ -17,10 +19,10 @@ var i : int;
    change : bool;
    s : int;
 let
-   s = declare_io(pin, 1);
+   s = declare_once(pin, 1);
    change = (modulo(count_true(), period) = 0);
    statee = true -> 
-      if toggle then (if change then (not (pre statee)) else (pre statee)) else (pre statee);
+      if toggle then (if change then (not (pre statee)) else (pre statee)) else false;
    i = s ->
       (if change
       then change_pin_state(pin, statee)
@@ -46,23 +48,27 @@ node led_control(pin: int; statee: bool) returns (out: bool)
 var i : int;
    s : int;
 let
-   s = declare_io(pin, 1);
+   s = declare_once(pin, 1);
    i = change_pin_state(pin, statee);
    out = true;
 tel;
 
+
+
 -- Hardware setup :
--- LED on pins 2, 3, 4 (configured as OUTPUT)
+-- LED on pins 2, 3, 4, 6 (configured as OUTPUT)
 -- Button on pin 5 (configured as INPUT)
 node main() returns (o: bool);
 var i: bool;
    j: int;
    k: bool;
+   m: bool;
    on_off: bool;
 let
-   j = declare_io(5, 0);
+   j = declare_once(5, 0);
    on_off = toggle_node(read_pin_state(5));
-   i = led(3, 2, on_off);
-   k = led(15, 3, true);
+   i = led(1, 2, on_off);
+   k = led(5, 3, true);
+   m = led_control(6, on_off);
    o = led_control(4, read_pin_state(5));
 tel;

@@ -1,16 +1,16 @@
 const __MMIO = @import("mmio.zig").__MMIO;
 
-const PINB = __MMIO(0x23, u8);
-const DDRB = __MMIO(0x24, u8);
-const PORTB = __MMIO(0x25, u8);
+pub const PINB = __MMIO(0x23, u8);
+pub const DDRB = __MMIO(0x24, u8);
+pub const PORTB = __MMIO(0x25, u8);
 
-const PINC = __MMIO(0x26, u8);
-const DDRC = __MMIO(0x27, u8);
-const PORTC = __MMIO(0x28, u8);
+pub const PINC = __MMIO(0x26, u8);
+pub const DDRC = __MMIO(0x27, u8);
+pub const PORTC = __MMIO(0x28, u8);
 
-const PIND = __MMIO(0x29, u8);
-const DDRD = __MMIO(0x2A, u8);
-const PORTD = __MMIO(0x2B, u8);
+pub const PIND = __MMIO(0x29, u8);
+pub const DDRD = __MMIO(0x2A, u8);
+pub const PORTD = __MMIO(0x2B, u8);
 
 const PORT_MODE = enum {
     INPUT,

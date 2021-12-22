@@ -79,7 +79,10 @@ pub fn bootstrap() void {
     //    //Serial.write(str);
     //    //Serial.write_ch('a');
     //}
-    while (true) {}
+    while (true) {
+        delay(100_000);
+        Serial.write("Bug, bug, bug\n\r");
+    }
 }
 
 // Some delay

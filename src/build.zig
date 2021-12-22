@@ -77,5 +77,5 @@ pub fn build(b: *std.build.Builder) !void {
     const all = b.step("all", "Builds everything, uploads the program and opens the screen.");
     all.dependOn(&screen_command.step);
 
-    b.default_step.dependOn(&avrdude.step);
+    b.default_step.dependOn(&exe.step);
 }

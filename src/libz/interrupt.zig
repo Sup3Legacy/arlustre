@@ -1,6 +1,7 @@
 const Libz = @import("libz.zig");
 const Utilities = Libz.Utilities;
 const MMIO = Libz.MmIO.MMIO;
+const GPIO = Libz.GpIO;
 
 /// Enable interrupts globaly
 pub inline fn sei() void {
@@ -27,11 +28,92 @@ const Port = enum {
     D,
 };
 
-var last_pin_state = struct {
+const ports = struct {
     portB: u8,
     portC: u8,
     portD: u8,
 };
+
+var last_pin_state = ports{
+    .portB = 0,
+    .portC = 0,
+    .portD = 0,
+};
+
+const PinInterruptType = enum {
+    Rising,
+    Falling,
+};
+
+/// The contained value is the index of the pin
+const PinInterrupt = union(PinInterruptType) {
+    Rising: u8,
+    Falling: u8,
+};
+
+const PinInterruptError = error{
+    MultipleChanges,
+    NoChange,
+    UnknownError,
+};
+
+fn find_set_bit(arg: u8) PinInterruptError!u8 {
+    var res: ?u8 = null;
+    var i: u3 = 0;
+    while (i < 8) : (i += 1) {
+        if (arg & (@as(u8, 1) << i) != 0) {
+            if (res != null) {
+                return PinInterruptError.MultipleChanges;
+            } else {
+                res = @as(u8, i);
+            }
+        }
+    }
+    return res orelse return PinInterruptError.NoChange;
+}
+
+fn detect_interrupt(port: Port) PinInterruptError!PinInterrupt {
+    switch (port) {
+        .B => {
+            var int_mask = PCMSK0.read();
+            var new_status = GPIO.PINB.read();
+            var masked_status = (new_status ^ last_pin_state.portB) & int_mask;
+            last_pin_state.portB = new_status;
+            var index = find_set_bit(masked_status) catch |err| return err;
+            if (new_status & (@as(u8, 1) << @intCast(u3, index)) != 0) {
+                return PinInterrupt{ .Rising = index + 8 };
+            } else {
+                return PinInterrupt{ .Falling = index + 8 };
+            }
+        },
+        .C => {
+            var int_mask = PCMSK1.read();
+            var new_status = GPIO.PINC.read();
+            var masked_status = (new_status ^ last_pin_state.portC) & int_mask;
+            last_pin_state.portC = new_status;
+            var index = find_set_bit(masked_status) catch |err| return err;
+            if (new_status & (@as(u8, 1) << @intCast(u3, index)) != 0) {
+                return PinInterrupt{ .Rising = index + 14 };
+            } else {
+                return PinInterrupt{ .Falling = index + 14 };
+            }
+        },
+        .D => {
+            var int_mask = PCMSK2.read();
+            var new_status = GPIO.PIND.read();
+            var masked_status = (new_status ^ last_pin_state.portD) & int_mask;
+            last_pin_state.portD = new_status;
+            var index = find_set_bit(masked_status) catch |err| return err;
+            if (new_status & (@as(u8, 1) << @intCast(u3, index)) != 0) {
+                return PinInterrupt{ .Rising = index + 0 };
+            } else {
+                return PinInterrupt{ .Falling = index + 0 };
+            }
+        },
+    }
+
+    return .UnknownError;
+}
 
 /// Attach an ISR at runtime
 /// Not operational for now
@@ -172,6 +254,9 @@ export fn _pcint0() callconv(.Naked) void {
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     var oldSREG: u8 = SREG.read();
 
+    var a = detect_interrupt(.B) catch null;
+    _ = a;
+
     SREG.write(oldSREG);
     pop();
 
@@ -184,6 +269,9 @@ export fn _pcint1() callconv(.Naked) void {
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     var oldSREG: u8 = SREG.read();
 
+    var a = detect_interrupt(.B) catch null;
+    _ = a;
+
     SREG.write(oldSREG);
     pop();
 
@@ -195,6 +283,9 @@ export fn _pcint2() callconv(.Naked) void {
     push();
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     var oldSREG: u8 = SREG.read();
+
+    var a = detect_interrupt(.B) catch null;
+    _ = a;
 
     SREG.write(oldSREG);
     pop();
@@ -278,7 +369,7 @@ export fn _tim1_compb() callconv(.Naked) void {
 
     //Libz.Serial.write_ch('x');
     _ = @import("../main.zig").step();
-    var v = @intCast(u16, Libz.Timer.timer0_overflow_count);
+    var v = @intCast(u16, Utilities.read_SP());
     Libz.Serial.write_usize(@intCast(u8, v >> 8));
     Utilities.delay(100);
     Libz.Serial.write_usize(@intCast(u8, v));
