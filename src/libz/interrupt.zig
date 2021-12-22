@@ -128,14 +128,14 @@ comptime {
         \\ jmp _start
         \\ jmp _unknown_interrupt
         \\ jmp _unknown_interrupt
-        \\ jmp _unknown_interrupt
-        \\ jmp _unknown_interrupt
-        \\ jmp _unknown_interrupt
-        \\ jmp _unknown_interrupt
-        \\ jmp _unknown_interrupt
-        \\ jmp _unknown_interrupt
-        \\ jmp _timer_int
-        \\ jmp _timer_int
+        \\ jmp _pcint0
+        \\ jmp _pcint1
+        \\ jmp _pcint2
+        \\ jmp _wdt
+        \\ jmp _tim2_compa
+        \\ jmp _tim2_compb
+        \\ jmp _tim2_ovf
+        \\ jmp _tim1_capt
         \\ jmp _tim1_compa
         \\ jmp _tim1_compb 
         \\ jmp _tim1_ovf
@@ -375,7 +375,7 @@ export fn _tim1_compb() callconv(.Naked) void {
     //Libz.Serial.write_usize(@intCast(u8, v));
     //Libz.Serial.write("\n\r");
 
-    @call(.{ .modifier = .never_inline }, @intToPtr(fn() void, __ISR[13]), .{});
+    @call(.{ .modifier = .never_inline }, @intToPtr(fn () void, __ISR[13]), .{});
 
     SREG.write(oldSREG);
     pop();
