@@ -1,5 +1,6 @@
 const Libz = @import("libz.zig");
 const Utilities = Libz.Utilities;
+const MMIO = Libz.MmIO.MMIO;
 
 /// Enable interrupts globaly
 pub inline fn sei() void {
@@ -10,6 +11,27 @@ pub inline fn sei() void {
 pub inline fn cli() void {
     asm volatile ("cli" ::: "memory");
 }
+
+// en/disable pin-interrupts on a per-port basis
+const PCICR = MMIO(0x68, u8, u8);
+// Pin interrupt mask on port B
+const PCMSK0 = MMIO(0x6b, u8, u8);
+// Pin interrupt mask on port C
+const PCMSK1 = MMIO(0x6c, u8, u8);
+// Pin interrupt mask on port D
+const PCMSK2 = MMIO(0x6d, u8, u8);
+
+const Port = enum {
+    C,
+    B,
+    D,
+};
+
+var last_pin_state = struct {
+    portB: u8,
+    portC: u8,
+    portD: u8,
+};
 
 /// Attach an ISR at runtime
 /// Not operational for now
@@ -322,6 +344,32 @@ export fn _tim0_ovf() callconv(.Naked) void {
 // 24 0x002E ANALOG COMP Analog Comparator
 // 25 0x0030 TWI 2-wire Serial Interface
 // 0x0032 SPM READY Store Program Memory Ready
+
+pub fn toggle_pinint(port: Port, state: bool) void {
+    switch (port) {
+        Port.B => {
+            if (state) {
+                PCICR.write(PCICR.read() | 1);
+            } else {
+                PCICR.write(PCICR.read() & ~1);
+            }
+        },
+        Port.C => {
+            if (state) {
+                PCICR.write(PCICR.read() | 2);
+            } else {
+                PCICR.write(PCICR.read() & ~2);
+            }
+        },
+        Port.D => {
+            if (state) {
+                PCICR.write(PCICR.read() | 4);
+            } else {
+                PCICR.write(PCICR.read() & ~4);
+            }
+        },
+    }
+}
 
 pub fn pop() void {
     asm volatile (
