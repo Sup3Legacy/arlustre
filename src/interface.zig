@@ -9,6 +9,7 @@ pub const read_pin_state_out = struct {
 pub const declare_io_out = struct { b: isize };
 pub const modulo_out = struct { c: isize };
 pub const change_timer0_out = struct { b: isize };
+pub const print_int_out = struct { b: bool };
 
 pub fn change_pin_state_step(pin: isize, state: bool, out: *change_pin_state_out) void {
     Libz.GpIO.DIGITAL_WRITE(@intCast(u8, pin), if (state) .HIGH else .LOW) catch {};
@@ -44,4 +45,14 @@ pub fn modulo_step(a: isize, b: isize, out: *modulo_out) void {
 pub fn change_timer0_freq(period: isize, out: *change_timer0_out) void {
     Libz.Timer.init_timer1(@as(u64, period));
     _ = out;
+}
+
+pub fn print_int_step(i: isize, do_print: bool, endl: bool, out: *print_int_out) void {
+    if (do_print) {
+        Libz.Serial.write_u16(@intCast(usize, i));
+        if (endl) {
+            Libz.Serial.write("\n\r");
+        }
+    }
+    out.b = do_print;
 }

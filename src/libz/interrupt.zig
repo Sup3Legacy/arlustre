@@ -368,12 +368,14 @@ export fn _tim1_compb() callconv(.Naked) void {
     var oldSREG: u8 = SREG.read();
 
     //Libz.Serial.write_ch('x');
-    _ = @import("../main.zig").step();
-    var v = @intCast(u16, Utilities.read_SP());
-    Libz.Serial.write_usize(@intCast(u8, v >> 8));
-    Utilities.delay(100);
-    Libz.Serial.write_usize(@intCast(u8, v));
-    Libz.Serial.write("\n\r");
+    //_ = @import("../main.zig").step();
+    //var v = @intCast(u16, Utilities.read_SP());
+    //Libz.Serial.write_usize(@intCast(u8, v >> 8));
+    //Utilities.delay(100);
+    //Libz.Serial.write_usize(@intCast(u8, v));
+    //Libz.Serial.write("\n\r");
+
+    @call(.{ .modifier = .never_inline }, @intToPtr(fn() void, __ISR[13]), .{});
 
     SREG.write(oldSREG);
     pop();

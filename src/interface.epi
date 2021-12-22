@@ -5,3 +5,5 @@ external fun change_pin_state(pin: int; mode: bool) returns (b: int)
 external fun read_pin_state(pin: int) returns (b: bool)
 
 external fun modulo(a: int; b: int) returns (c: int)
+
+external fun print_int(i: int; do_print: bool; endline: bool) returns (b: bool)

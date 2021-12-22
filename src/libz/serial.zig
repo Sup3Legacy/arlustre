@@ -141,6 +141,17 @@ pub fn write_usize(nb: u8) void {
     write_ch(match_number(@intCast(u4, nb)));
 }
 
+pub fn write_u16(nb: u32) void {
+    write_ch(match_number(@intCast(u4, nb >> 12)));
+    flush();
+    write_ch(match_number(@intCast(u4, nb >> 8)));
+    flush();
+    write_ch(match_number(@intCast(u4, nb >> 4)));
+    flush();
+    write_ch(match_number(@intCast(u4, nb)));
+    flush();
+}
+
 pub fn write_u32(nb: u32) void {
     write_ch(match_number(@intCast(u4, nb / 28)));
     flush();

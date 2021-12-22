@@ -49,6 +49,9 @@ pub fn bootstrap() void {
     Serial.write_ch('\n');
 
     interrupt.sei();
+
+    // Attach the step function to the timer1 interrupt
+    interrupt._attach_interrupt(13, @ptrToInt(@import("main.zig").step));
     timer.init_timer1(75_000);
 
     //while (true) {
@@ -80,8 +83,9 @@ pub fn bootstrap() void {
     //    //Serial.write_ch('a');
     //}
     while (true) {
-        delay(100_000);
-        Serial.write("Bug, bug, bug\n\r");
+        //delay(100_000);
+        //Serial.write("Bug, bug, bug\n\r");
+        Libz.Utilities.no_op();
     }
 }
 
