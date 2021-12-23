@@ -1,14 +1,14 @@
-# Arlustre
-
 (WIP)
 
-Arduino interface for the Heptagon synchronous language written in Zig. It should provide a kinda-low-level interface to any heptagon program, through the custom Heptagon Zig backend. The whole low-level Arduino core-library is implemented using Zig.
+# Arlustre
+
+Arduino interface for the [Heptagon](https://gitlab.inria.fr/synchrone/heptagon) synchronous language written in [Zig](https://ziglang.org/). It should provide a kinda-low-level interface to any heptagon program, through the custom Heptagon Zig backend. The whole low-level Arduino core-library is implemented using Zig.
 
 Non-exhaustive list of functionning features:
 
 - Very simple Zig backend, not extensively tested (all operations on arrays are not supported for now)
 - Zig Arduino Libcore with custom bootstraping stack, interrupts, Serial, GPIO
-- Interface to Heptagon for both GPIO allocation and write operations
+- Interface to Heptagon for both GPIO allocation/read/write operatiosn as well as printing (more to come)
 
 # Achievements
 
@@ -17,21 +17,21 @@ Things I have achieved so far :
 - Arduino libcore covering a not-to-bad proportion of the features available on the Arduino Uno platform (GPIO, Serial, some basic timer interrupts so far)
 - Automated build using `zig build`
 - Small Lustre interface containing GPIO-{declaration, read, write}.
-- Lustre test program showing the interaction with LEDs, timers, a potentiometer and a button.
+- Lustre test program showing a proof-of-concept with LEDs, timers, a potentiometer and a button.
   
 # How to use
 
 ## Programming
 
-The program's main logic is located in the `src/top.lus` Lustre file. The interface is defined in `/src/interface.epi`. Both files should not be moved or renamed, as the build system is quite rudimentary and assumes the existence of these files at these locations.
+The program's main logic is located in the `src/top.lus` Lustre file. The interface is defined in `src/interface.epi`. Both files should not be moved or renamed, as the build system is quite rudimentary and assumes the existence of these files at these locations.
 
-`src/lib` contains the Arduino libcore in pure Zig. It contains all basic fonctionnalities regarding MMIO, GPIO, interrupts, timers and the Serial interface. The `src/libz/interrupt.zig` file contains bindings to `/src/main.zig` for the moment but this should be removed and replaced by a runtime ISR declaration during the booting process, thus making the `Libz` intrinsically independant from the application. 
+`src/lib` contains the Arduino libcore in pure Zig. It contains all basic fonctionnalities regarding MMIO, GPIO, interrupts, timers and the Serial interface. The `src/libz/interrupt.zig` file contains bindings to `src/main.zig` for the moment but this should be removed and replaced by a runtime ISR declaration during the booting process, thus making the `Libz` intrinsically independant from the application. 
 
-`build.zig` if the sort-of building script.
+`build.zig` is the building script.
 
-`boot.zig` is the entry point of the program. Is handles both the clearing of ths `.bss` segment and the data-loading from Flash to RAM.
+`boot.zig` is the entry point of the program. It handles both the clearing of ths `.bss` segment and the data-loading from Flash to RAM.
 
-`start.zig` defines the main function : `bootstrap` where all interrupts and timers should be initialized. This function is called by `_start` after the booting proccess and, in this particular applications, resets the state of the Lustre program.
+`start.zig` defines the main function : `bootstrap` where all interrupts and timers should be initialized. This function is called by `_start` after the booting proccess and, in this particular application, resets the state of the Lustre program.
 
 `main.zig` is automatically generated but modified a bit by hand (TODO make this fully automatic) and defines global `reset` and `step` functions to drive the entire transpilled Lustre program.
 
@@ -51,10 +51,11 @@ The program's main logic is located in the `src/top.lus` Lustre file. The interf
 - `make` and `make install` in the `heptagon` root directory. This should install `heptc` somewhere that is accessible through the `PATH` (check this if `heptc` cannot be found).
 - in the `src` subdirectory : 
   - `zig heptc` : runs `heptc` on `interface.epi` and `top.lus` and moves the generated `top.zig` in `./src`
-  - `zig build` : Both transpile the Lustre program and build the resulting Zig program into an Arduino-compatibl binary
-  - `zig build upload` : do everything mentionned before (`heptc`, compiles the Zig program) and uploads the program to the Arduino using a generic port using `avrdude` (TODO add port as an optional argument)
+  - `zig build` : Both transpiles the Lustre program and builds the resulting Zig program into an Arduino-compatible binary
+  - `zig build upload` : does everything mentionned before (`heptc`, compiles the Zig program) and uploads the program to the Arduino using a generic port using `avrdude` (TODO add port as an optional argument)
   - `zig screen` : does everything above + opens a `screen` session with the arduino on the same port (TODO add port as an optional argument)
 
 # Acknowledgments
 
-Thanks to [Silversquirl](https://github.com/silversquirl) for their help with linker issues
+Thanks to [FireFox317](https://github.com/FireFox317) for their [Arduino Zig basis](https://github.com/FireFox317/avr-arduino-zig).
+Thanks to [Silversquirl](https://github.com/silversquirl) for their help with linker issues.
