@@ -11,3 +11,5 @@ external fun div(a: int; b: int) returns (c: int)
 external fun print_int(i: int; do_print: bool; endline: bool) returns (b: bool)
 
 external fun read_analog(pin: int) returns (i: int)
+
+external fun random(at_least: int; less_than: int) returns (i: int)

@@ -90,7 +90,7 @@ let
    period = div(read_analog(14), 64) + 1;
    j = declare_once(5, 0);
    on_off = toggle_node(read_pin_state(5));
-   i = led(8, 2, on_off);
+   i = led(random(8, 512), 2, on_off);
    k = led(period, 3, true);
    m = led_control(6, on_off);
    o = led_control(4, read_pin_state(5));

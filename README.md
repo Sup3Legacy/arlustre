@@ -2,7 +2,7 @@
 
 # Arlustre
 
-Arduino interface for the [Heptagon](https://gitlab.inria.fr/synchrone/heptagon) synchronous language written in [Zig](https://ziglang.org/). It should provide a kinda-low-level interface to any heptagon program, through the custom Heptagon Zig backend. The whole low-level Arduino core-library is implemented using Zig.
+Arduino interface for the [Heptagon](https://gitlab.inria.fr/synchrone/heptagon) synchronous language written in [Zig](https://ziglang.org/). It should provide a kinda-low-level interface to any heptagon program, through the custom Heptagon Zig backend. The whole low-level Arduino core-library is implemented using Zig. ⚠️ Only works for the standard Arduino Uno board.
 
 Non-exhaustive list of functionning features:
 

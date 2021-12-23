@@ -12,6 +12,7 @@ pub const div_out = struct { c: isize };
 pub const change_timer0_out = struct { b: isize };
 pub const print_int_out = struct { b: bool };
 pub const read_analog_out = struct { i: isize };
+pub const random_out = struct { i: isize };
 
 pub fn change_pin_state_step(pin: isize, state: bool, out: *change_pin_state_out) void {
     Libz.GpIO.DIGITAL_WRITE(@intCast(u8, pin), if (state) .HIGH else .LOW) catch {};
@@ -68,4 +69,8 @@ pub fn print_int_step(i: isize, do_print: bool, endl: bool, out: *print_int_out)
 
 pub fn read_analog_step(pin: isize, out: *read_analog_out) void {
     out.i = @intCast(isize, Libz.GpIO.ANALOG_READ(@intCast(u8, pin)));
+}
+
+pub fn random_step(at_least: isize, less_than: isize, out: *random_out) void {
+    out.i = Libz.Rand.get_random(at_least, less_than);
 }

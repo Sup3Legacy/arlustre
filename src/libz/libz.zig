@@ -6,3 +6,4 @@ pub const Time = @import("time.zig");
 pub const Utilities = @import("utilities.zig");
 pub const GpIO = @import("gpio.zig");
 pub const Timer = @import("timer.zig");
+pub const Rand = @import("rand.zig");
