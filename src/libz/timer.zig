@@ -141,6 +141,5 @@ pub fn micros() u32 {
     SREG.write(oldSREG);
 
     //Libz.Interrupts.sei();
-    return 0;
-    //return ((m << 8) + @as(u32, t));// * (64 / Libz.CONSTANTS.UNO_clock_micros);
+    return ((m << 8) + @as(u32, t)) * (64 / Libz.CONSTANTS.UNO_clock_micros);
 }

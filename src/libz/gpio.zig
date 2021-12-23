@@ -1,3 +1,4 @@
+const Libz = @import("libz.zig");
 const __MMIO = @import("mmio.zig").__MMIO;
 
 pub const PINB = __MMIO(0x23, u8);
@@ -11,6 +12,13 @@ pub const PORTC = __MMIO(0x28, u8);
 pub const PIND = __MMIO(0x29, u8);
 pub const DDRD = __MMIO(0x2A, u8);
 pub const PORTD = __MMIO(0x2B, u8);
+
+pub const ADCL = __MMIO(0x78, u8);
+pub const ADCH = __MMIO(0x79, u8);
+pub const ADMUX = __MMIO(0x7c, u8);
+pub const ADC = __MMIO(0x78, u16);
+pub const ADCSRA = __MMIO(0x7a, u8);
+pub const ADCSRB = __MMIO(0x7b, u8);
 
 const PORT_MODE = enum {
     INPUT,
@@ -125,7 +133,7 @@ pub fn DIGITAL_WRITE(pin_id: u8, value: VALUE) GPIO_ERROR!void {
 }
 
 pub fn DIGITAL_READ(pin_id: u8) GPIO_ERROR!VALUE {
-    var is_input = READ_DIGITAL_MODE(pin_id) catch  .INPUT;
+    var is_input = READ_DIGITAL_MODE(pin_id) catch .INPUT;
     if (is_input != .INPUT) {
         return GPIO_ERROR.CANT_READ_OUTPUT;
     }
@@ -144,6 +152,7 @@ pub fn DIGITAL_READ(pin_id: u8) GPIO_ERROR!VALUE {
                 return .LOW;
             }
         },
+        // Analog pins, here used as digital ones
         14...19 => {
             if (PINC.read() & itb(pin_id) != 0) {
                 return .HIGH;
@@ -155,4 +164,23 @@ pub fn DIGITAL_READ(pin_id: u8) GPIO_ERROR!VALUE {
             return GPIO_ERROR.NON_EXISTING_DIGITAL_PIN;
         },
     }
+}
+
+pub fn ANALOG_READ(pin_id: u8) usize {
+    // Enable ADC
+    ADCSRA.write(ADCSRA.read() | (1 << 7));
+    // Select pin. First part is the pin number (n.b. 0x1111 would be the temperature sensor)
+    // and second the reference
+    ADMUX.write(ADMUX.read() | ((pin_id - 14) & 0x07) | (1 << 6));
+    // Start conversion
+    ADCSRA.write(ADCSRA.read() | (1 << 6));
+    // Wait until conversion end
+    while (ADCSRA.read() & (1 << 6) != 0) {
+        Libz.Utilities.no_op();
+    }
+    // Start by reading the low part
+    var l = ADCL.read();
+    asm volatile ("nop":::"memory");
+    var h = ADCH.read();
+    return @as(u16, l) | (@as(u16, h) << 8);
 }

@@ -49,7 +49,10 @@ The program's main logic is located in the `src/top.lus` Lustre file. The interf
 - `make` and `make install` in the `heptagon` root directory. This should install `heptc` somewhere that is accessible through the `PATH` (check this if `heptc` cannot be found).
 - in the `src` subdirectory : 
   - `zig heptc` : runs `heptc` on `interface.epi` and `top.lus` and moves the generated `top.zig` in `./src`
-  - No step to only compile the Zig program for now, WIP
-  - `zig build` = `zig build upload` : do everything mentionned before (`heptc`, compiles the Zig program) and uploads the program to the Arduino using a generic port (TODO add port as an optional argument)
-  - `zig screen` : does everything above + opens a `screen` session with the arduino on the same port (TODO same_thing)
-  
+  - `zig build` : Both transpile the Lustre program and build the resulting Zig program into an Arduino-compatibl binary
+  - `zig build upload` : do everything mentionned before (`heptc`, compiles the Zig program) and uploads the program to the Arduino using a generic port using `avrdude` (TODO add port as an optional argument)
+  - `zig screen` : does everything above + opens a `screen` session with the arduino on the same port (TODO add port as an optional argument)
+
+# Acknowledgments
+
+Thanks to [Silversquirl](https://github.com/silversquirl) for their help with linker issues

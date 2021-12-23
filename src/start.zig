@@ -27,9 +27,15 @@ pub fn toggle() callconv(.C) void {
     on = !on;
 }
 
-pub fn bootstrap() void {
-    delay(100_000);
+pub fn init_soc() void {
+    // Init serial interface
     Serial.init(19200);
+    // Init ADC's prescaler. Must do in order to initialize the ADC
+    gpio.ADCSRA.write(gpio.ADCSRA.read() | 0x07);
+}
+
+pub fn bootstrap() void {
+    init_soc();
     delay(100_000);
     Serial.write(str);
 
@@ -52,7 +58,7 @@ pub fn bootstrap() void {
 
     // Attach the step function to the timer1 interrupt
     interrupt._attach_interrupt(13, @ptrToInt(@import("main.zig").step));
-    timer.init_timer1(75_000);
+    timer.init_timer1(10_000);
 
     //while (true) {
     //    Serial.write_u32(timer.micros());
