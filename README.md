@@ -2,7 +2,7 @@
 
 (WIP)
 
-Arduino interface for the Heptagon synchronous dataflow-oriented language written in Zig. It should provide a kinda-low-level interface to any heptagon program, through the custom Heptagon Zig backend. The whole low-level Arduino core-library is implemented using Zig.
+Arduino interface for the Heptagon synchronous language written in Zig. It should provide a kinda-low-level interface to any heptagon program, through the custom Heptagon Zig backend. The whole low-level Arduino core-library is implemented using Zig.
 
 Non-exhaustive list of functionning features:
 
@@ -12,12 +12,12 @@ Non-exhaustive list of functionning features:
 
 # Achievements
 
-Things I have achieved for now :
+Things I have achieved so far :
 
-- Arduino libcore covering a not-to-bad proportion of the features available on the Arduino Uno platform (GPIO, Serial, some basic timer interrupts as of now)
+- Arduino libcore covering a not-to-bad proportion of the features available on the Arduino Uno platform (GPIO, Serial, some basic timer interrupts so far)
 - Automated build using `zig build`
 - Small Lustre interface containing GPIO-{declaration, read, write}.
-- Lustre test program showing the interaction with LEDs, timers and a button.
+- Lustre test program showing the interaction with LEDs, timers, a potentiometer and a button.
   
 # How to use
 
@@ -43,6 +43,8 @@ The program's main logic is located in the `src/top.lus` Lustre file. The interf
 - `zig` version >= `0.8` (I use the `edge` channel from `snap`, i.e. `0.10.0-dev.2+ea913846c` as of writing). Do note that Zig is still in pre-1.0 version so it tends to be not so stable now and then. If a strange behaviour is encountered, do try another (maybe more recent or more stable) release.
 - `screen`
 - `avrdude`
+- `avr-gcc` for the linking process
+- (optional) `avr-objdump` needed to use `zig build objdump`
   
 ## How to compile
 
