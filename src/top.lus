@@ -73,11 +73,25 @@ let
    out = true;
 tel;
 
+node print_distance() returns (o: bool)
+var cloc: bool;
+   received: bool;
+   l: int;
+   h : int;
+   print_n: bool;
+let
+   cloc = counter(64);
+   (received, l, h) = time_pulse(7, 9, cloc);
+   print_n = print_long(l, h, received, true);
+   o = true;
+tel;
 
 
 -- Hardware setup :
 -- LED on pins 2, 3, 4, 6 (configured as OUTPUT)
 -- Button on pin 5 (configured as INPUT)
+-- Potentiometer on pin 6
+-- Ultrasound sensor : trigger on pin 8 and echo input on pin 9
 node main() returns (o: bool);
 var i: bool;
    j: int;
@@ -86,13 +100,15 @@ var i: bool;
    n: bool;
    on_off: bool;
    period: int;
+   distance: bool;
 let
    period = div(read_analog(14), 64) + 1;
    j = declare_once(5, 0);
    on_off = toggle_node(read_pin_state(5));
-   i = led(random(8, 512), 2, on_off);
+   i = led(32, 2, on_off);
    k = led(period, 3, true);
    m = led_control(6, on_off);
    o = led_control(4, read_pin_state(5));
    n = print_int(period, false, true);
+   distance = print_distance();
 tel;

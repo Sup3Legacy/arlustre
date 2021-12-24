@@ -127,8 +127,6 @@ pub fn micros() u32 {
     const SREG = MMIO(0x3F, u8, u8);
     var oldSREG: u8 = SREG.read();
 
-    Libz.Interrupts.cli();
-
     const TCNT0 = MMIO(0x46, u8, u8); // + 0x20
     const TIFR0 = MMIO(0x35, u8, u8);
 
@@ -140,6 +138,5 @@ pub fn micros() u32 {
     }
     SREG.write(oldSREG);
 
-    //Libz.Interrupts.sei();
     return ((m << 8) + @as(u32, t)) * (64 / Libz.CONSTANTS.UNO_clock_micros);
 }

@@ -15,7 +15,7 @@ var str2 = "Hi!\n\r";
 
 var lol = [_]u8{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-var on: bool = false;
+pub var on: bool = false;
 
 pub fn toggle() callconv(.C) void {
     if (on) {
@@ -92,6 +92,11 @@ pub fn bootstrap() void {
         //delay(100_000);
         //Serial.write("Bug, bug, bug\n\r");
         Libz.Utilities.no_op();
+        //if (on) {
+        //    on = false;
+        //    delay(100_000);
+        //    Serial.write_ch('x');
+        //}
     }
 }
 
@@ -106,7 +111,7 @@ pub fn delay(m: u32) void {
     var i: u32 = 0;
     while (i < m) {
         i += 1;
-        asm volatile ("nop");
+        asm volatile ("nop" ::: "memory");
     }
     //Libz.Interrupts.sei();
 

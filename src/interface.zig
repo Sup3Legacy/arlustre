@@ -12,7 +12,8 @@ pub const modulo_out = struct { c: isize };
 pub const div_out = struct { c: isize };
 pub const change_timer0_out = struct { b: isize };
 pub const print_int_out = struct { b: bool };
-pub const read_analog_out = struct { i: isize }; 
+pub const print_long_out = struct { b: bool };
+pub const read_analog_out = struct { i: isize };
 pub const random_out = struct { i: isize };
 pub const time_pulse_out = struct { b: bool, h: isize, l: isize };
 
@@ -69,6 +70,17 @@ pub fn print_int_step(i: isize, do_print: bool, endl: bool, out: *print_int_out)
     out.b = do_print;
 }
 
+pub fn print_long_step(l: isize, h: isize, do_print: bool, endl: bool, out: *print_long_out) void {
+    if (do_print) {
+        Libz.Serial.write_u16(@intCast(usize, h));
+        Libz.Serial.write_u16(@intCast(usize, l));
+        if (endl) {
+            Libz.Serial.write("\n\r");
+        }
+    }
+    out.b = do_print;
+}
+
 pub fn read_analog_step(pin: isize, out: *read_analog_out) void {
     out.i = @intCast(isize, Libz.GpIO.ANALOG_READ(@intCast(u8, pin)));
 }
@@ -79,24 +91,41 @@ pub fn random_step(at_least: isize, less_than: isize, out: *random_out) void {
 
 pub fn time_pulse_step(outp: isize, inp: isize, do_step: bool, out: *time_pulse_out) void {
     var in_pin = @intCast(u8, inp);
+    Libz.GpIO.DIGITAL_MODE(@intCast(u8, outp), .OUTPUT) catch {};
+    Libz.GpIO.DIGITAL_MODE(@intCast(u8, inp), .INPUT) catch {};
+
     if (do_step) {
+        // Temp
+        Interrupts.toggle_pinint(.B, true);
+        //Interrupts.toggle_pinint(.C, true);
+        //Interrupts.toggle_pinint(.D, true);
+
         // Send the signal
-        Libz.GpIO.DIGITAL_WRITE(@intCast(u8, outp), .HIGH) catch {};
-        // Set the tiem reference for the 
+        Libz.GpIO.DIGITAL_WRITE(@intCast(u8, outp), .LOW) catch {};
+        // Set the time reference for the
         Interrupts.set_reference(in_pin);
-        // Only interrupt once please 
+        Interrupts.did_interrupt_occur[in_pin] = false;
+        // Only interrupt once please
         // * In the future, we may wish to interrupt multiple times ?
         Interrupts.do_interrupt[in_pin] = false;
         out.b = false;
         out.l = 0;
         out.h = 0;
+        Libz.Utilities.delay(16_000);
+        Libz.GpIO.DIGITAL_WRITE(@intCast(u8, outp), .HIGH) catch {};
+        Interrupts.toggle_pin_interrupt(in_pin, true);
     } else {
-        
-        out.b = Interrupts.did_interrupt_occur[];
-        var diff = Interrupts.get_last_time(in_pin) - Interrupts.get_time_reference(in_pin);
-        var low = @intCast(usize, diff & 0x0000ffff);
-        var high = @intCast(usize, (diff & 0xffff0000) >> 16);
-        out.l = @bitCast(isize, low);
-        out.h = @bitCast(isize, high);
+        var did_occur = Interrupts.did_interrupt_occur[in_pin];
+        out.b = did_occur;
+        if (did_occur) {
+            var diff = Interrupts.get_last_time(in_pin) -% Interrupts.get_time_reference(in_pin);
+            var low = @intCast(usize, diff & 0x0000ffff);
+            var high = @intCast(usize, (diff & 0xffff0000) >> 16);
+            out.l = @bitCast(isize, low);
+            out.h = @bitCast(isize, high);
+            Interrupts.reset_pin_interrupt(in_pin);
+        } else {
+            // Maybe do reset out.l and out.h?
+        }
     }
 }

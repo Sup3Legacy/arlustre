@@ -1,5 +1,6 @@
 const MMIO = @import("mmio.zig").MMIO;
 const constants = @import("constants.zig");
+const Libz = @import("libz.zig");
 
 const UDR0 = MMIO(0xc6, u8, packed union {
     RXB: u8,
@@ -75,11 +76,13 @@ pub fn write(data: []const u8) void {
 
 pub fn write_ch(ch: u8) void {
     // Wait till the transmit buffer is empty
+    const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
+    var oldSREG: u8 = SREG.read();
     @import("libz.zig").Interrupts.cli();
     while (UCSR0A.read().UDRE0 != 1) {}
 
     UDR0.write(.{ .TXB = ch });
-    @import("libz.zig").Interrupts.sei();
+    SREG.write(oldSREG);
 }
 
 fn match_number(n: u4) u8 {

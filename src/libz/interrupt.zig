@@ -41,23 +41,24 @@ var last_pin_state = ports{
 };
 
 /// Timestamp reference for each pin. Used for `time_pulse`
-pub var time_reference: [20]u32 = {0} ** 20;
+pub var time_reference: [20]u32 = [_]u32{0} ** 20;
 
-pub var last_time: [20]u32 = {0} ** 20;
+pub var last_time: [20]u32 = [_]u32{0} ** 20;
 
-pub var did_interrupt_occur : [20]bool = {false} ** 20;
+pub var did_interrupt_occur: [20]bool = [_]bool{false} ** 20;
 
-pub var do_interrupt: [20]bool = {false} ** 20;
+pub var do_interrupt: [20]bool = [_]bool{false} ** 20;
 
 /// Set the reference timestamp to the actual time
 pub fn set_reference(pin: u8) void {
-    var micros = Libz.timer.micros();
+    var micros = Libz.Timer.micros();
     time_reference[pin] = micros;
-    did_interrupt_occur[pin] = false;
+    //last_time[pin] = micros;
+    //did_interrupt_occur[pin] = false;
 }
 
 fn update_pin_time(pin: u8) void {
-    var micros = Libz.timer.micros();
+    var micros = Libz.Timer.micros();
     last_time[pin] = micros;
 }
 
@@ -69,11 +70,16 @@ pub fn get_time_reference(pin: u8) u32 {
     return time_reference[pin];
 }
 
+pub fn reset_pin_interrupt(pin: u8) void {
+    did_interrupt_occur[pin] = false;
+}
+
 fn handle_pin_interrupt(pin: u8) void {
     update_pin_time(pin);
+    did_interrupt_occur[pin] = true;
     // Update the interrupt control register in order to stop
     // this pin from interrupting if not needed
-    toggle_interrupt(pin, do_interrupt[pin]);
+    toggle_pin_interrupt(pin, do_interrupt[pin]);
 }
 
 const PinInterruptType = enum {
@@ -87,6 +93,13 @@ const PinInterrupt = union(PinInterruptType) {
     Falling: u8,
 };
 
+fn pin_interrupt_to_pin(pi: PinInterrupt) u8 {
+    switch (pi) {
+        PinInterrupt.Rising => |i| return i,
+        PinInterrupt.Falling => |i| return i,
+    }
+}
+
 const PinInterruptError = error{
     MultipleChanges,
     NoChange,
@@ -95,13 +108,13 @@ const PinInterruptError = error{
 
 fn find_set_bit(arg: u8) PinInterruptError!u8 {
     var res: ?u8 = null;
-    var i: u3 = 0;
+    var i: u8 = 0;
     while (i < 8) : (i += 1) {
-        if (arg & (@as(u8, 1) << i) != 0) {
+        if (arg & (@as(u8, 1) << @intCast(u3, i)) != 0) {
             if (res != null) {
                 return PinInterruptError.MultipleChanges;
             } else {
-                res = @as(u8, i);
+                res = i;
             }
         }
     }
@@ -175,7 +188,7 @@ pub fn toggle_pin_interrupt(pin_id: u8, enabled: bool) void {
             }
         },
         else => {
-            return GPIO_ERROR.NON_EXISTING_DIGITAL_PIN;
+            return;
         },
     }
 }
@@ -314,20 +327,25 @@ export fn _int1() callconv(.Naked) void {
 }
 
 /// Pin change int 0
-export fn _pcint0() callconv(.Naked) void {
-    push();
-    const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
-    var oldSREG: u8 = SREG.read();
+export fn _pcint0() callconv(.Interrupt) void {
+    asm volatile ("cli" ::: "memory");
+    //push();
+    //const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
+    //var oldSREG: u8 = SREG.read();
 
+    //@import("../start.zig").on = true;
+    //did_interrupt_occur[9] = true;
+    //last_time[9] = Libz.Timer.micros();
     var a = detect_interrupt(.B) catch null;
+    //var a: ?PinInterrupt = PinInterrupt {.Rising = 9};
     if (a) |pin| {
-        handle_pin_interrupt(a);
+        handle_pin_interrupt(pin_interrupt_to_pin(pin));
     }
 
-    SREG.write(oldSREG);
-    pop();
+    //SREG.write(oldSREG);
+    //pop();
 
-    asm volatile ("reti");
+    //asm volatile ("reti");
 }
 
 /// Pin change int 1
@@ -336,9 +354,12 @@ export fn _pcint1() callconv(.Naked) void {
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     var oldSREG: u8 = SREG.read();
 
-    var a = detect_interrupt(.B) catch null;
+    @import("../start.zig").on = true;
+
+    var a = detect_interrupt(.C) catch null;
+
     if (a) |pin| {
-        handle_pin_interrupt(a);
+        handle_pin_interrupt(pin_interrupt_to_pin(pin));
     }
 
     SREG.write(oldSREG);
@@ -353,9 +374,11 @@ export fn _pcint2() callconv(.Naked) void {
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     var oldSREG: u8 = SREG.read();
 
-    var a = detect_interrupt(.B) catch null;
+    @import("../start.zig").on = true;
+
+    var a = detect_interrupt(.D) catch null;
     if (a) |pin| {
-        handle_pin_interrupt(a);
+        handle_pin_interrupt(pin_interrupt_to_pin(pin));
     }
 
     SREG.write(oldSREG);
@@ -376,7 +399,7 @@ export fn _wdt() callconv(.Naked) void {
     asm volatile ("reti");
 }
 
-// 7 0x000C WDT Watchdog Time-out Interrupt
+// 7 0x000C WDT Watchdog Time-out Interrupttime_reference
 // 8 0x000E TIMER2 COMPA Timer/Counter2 Compare Match A
 export fn _tim2_compa() callconv(.Naked) void {
     push();
@@ -433,10 +456,14 @@ export fn _tim1_compa() callconv(.Naked) void {
     asm volatile ("reti");
 }
 // 13 0x0018 TIMER1 COMPB Timer/Coutner1 Compare Match B
-export fn _tim1_compb() callconv(.Naked) void {
-    push();
-    const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
-    var oldSREG: u8 = SREG.read();
+export fn _tim1_compb() callconv(.Interrupt) void {
+    asm volatile ("cli" ::: "memory");
+    //push();
+    //asm volatile ("nop" ::: "memory");
+    //const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
+    //var oldSREG: u8 = SREG.read();
+
+    //sei();
 
     //Libz.Serial.write_ch('x');
     //_ = @import("../main.zig").step();
@@ -448,10 +475,11 @@ export fn _tim1_compb() callconv(.Naked) void {
 
     @call(.{ .modifier = .never_inline }, @intToPtr(fn () void, __ISR[13]), .{});
 
-    SREG.write(oldSREG);
-    pop();
+    //SREG.write(oldSREG);
+    //asm volatile ("nop" ::: "memory");
+    //pop();
 
-    asm volatile ("reti");
+    //asm volatile ("reti");
 }
 // 14 0x001A TIMER1 OVF Timer/Counter1 Overflow
 export fn _tim1_ovf() callconv(.Naked) void {
@@ -513,23 +541,23 @@ pub fn toggle_pinint(port: Port, state: bool) void {
     switch (port) {
         Port.B => {
             if (state) {
-                PCICR.write(PCICR.read() | 1);
+                PCICR.write(PCICR.read() | @as(u8, 1));
             } else {
-                PCICR.write(PCICR.read() & ~1);
+                PCICR.write(PCICR.read() & ~@as(u8, 1));
             }
         },
         Port.C => {
             if (state) {
-                PCICR.write(PCICR.read() | 2);
+                PCICR.write(PCICR.read() | @as(u8, 2));
             } else {
-                PCICR.write(PCICR.read() & ~2);
+                PCICR.write(PCICR.read() & ~@as(u8, 2));
             }
         },
         Port.D => {
             if (state) {
-                PCICR.write(PCICR.read() | 4);
+                PCICR.write(PCICR.read() | @as(u8, 4));
             } else {
-                PCICR.write(PCICR.read() & ~4);
+                PCICR.write(PCICR.read() & ~@as(u8, 4));
             }
         },
     }

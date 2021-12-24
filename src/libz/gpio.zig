@@ -23,7 +23,7 @@ pub const ADCSRB = __MMIO(0x7b, u8);
 const PORT_MODE = enum {
     INPUT,
     OUTPUT,
-    INPUT_PULL,
+    INPUT_PULLUP,
 };
 
 const VALUE = enum {
@@ -42,30 +42,65 @@ const GPIO_ERROR = error{
 // int to bit
 pub fn itb(id: u8) u8 {
     const unite: u8 = 1;
-    return unite << @intCast(u3, id % 8);
+
+    switch (id) {
+        0...7 => {
+            return unite << @intCast(u3, id);
+        },
+        8...13 => {
+            return unite << @intCast(u3, id - 8);
+        },
+        14...19 => {
+            return unite << @intCast(u3, id - 14);
+        },
+        else => {
+            return 0;
+        },
+    }
 }
 
 pub fn DIGITAL_MODE(pin_id: u8, mode: PORT_MODE) GPIO_ERROR!void {
     switch (pin_id) {
         0...7 => {
-            if (mode == .INPUT) {
-                DDRD.write(DDRD.read() | itb(pin_id));
-            } else {
-                DDRD.write(DDRD.read() & ~itb(pin_id));
+            switch (mode) {
+                .INPUT => {
+                    DDRD.write(DDRD.read() | itb(pin_id));
+                },
+                .INPUT_PULLUP => {
+                    DDRD.write(DDRD.read() | itb(pin_id));
+                    PORTD.write(PORTD.read() | itb(pin_id));
+                },
+                .OUTPUT => {
+                    DDRD.write(DDRD.read() & ~itb(pin_id));
+                },
             }
         },
         8...13 => {
-            if (mode == .INPUT) {
-                DDRB.write(DDRB.read() | itb(pin_id));
-            } else {
-                DDRB.write(DDRB.read() & ~itb(pin_id));
+            switch (mode) {
+                .INPUT => {
+                    DDRB.write(DDRB.read() | itb(pin_id));
+                },
+                .INPUT_PULLUP => {
+                    DDRB.write(DDRB.read() | itb(pin_id));
+                    PORTB.write(PORTB.read() | itb(pin_id));
+                },
+                .OUTPUT => {
+                    DDRB.write(DDRB.read() & ~itb(pin_id));
+                },
             }
         },
         14...19 => {
-            if (mode == .INPUT) {
-                DDRC.write(DDRC.read() | itb(pin_id));
-            } else {
-                DDRC.write(DDRC.read() & ~itb(pin_id));
+            switch (mode) {
+                .INPUT => {
+                    DDRC.write(DDRC.read() | itb(pin_id));
+                },
+                .INPUT_PULLUP => {
+                    DDRC.write(DDRC.read() | itb(pin_id));
+                    PORTC.write(PORTC.read() | itb(pin_id));
+                },
+                .OUTPUT => {
+                    DDRC.write(DDRC.read() & ~itb(pin_id));
+                },
             }
         },
         else => {
@@ -180,7 +215,7 @@ pub fn ANALOG_READ(pin_id: u8) usize {
     }
     // Start by reading the low part
     var l = ADCL.read();
-    asm volatile ("nop":::"memory");
+    asm volatile ("nop" ::: "memory");
     var h = ADCH.read();
     return @as(u16, l) | (@as(u16, h) << 8);
 }
