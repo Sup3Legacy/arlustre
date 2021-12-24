@@ -40,7 +40,7 @@ const GPIO_ERROR = error{
 };
 
 // int to bit
-fn itb(id: u8) u8 {
+pub fn itb(id: u8) u8 {
     const unite: u8 = 1;
     return unite << @intCast(u3, id % 8);
 }

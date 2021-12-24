@@ -40,6 +40,42 @@ var last_pin_state = ports{
     .portD = 0,
 };
 
+/// Timestamp reference for each pin. Used for `time_pulse`
+pub var time_reference: [20]u32 = {0} ** 20;
+
+pub var last_time: [20]u32 = {0} ** 20;
+
+pub var did_interrupt_occur : [20]bool = {false} ** 20;
+
+pub var do_interrupt: [20]bool = {false} ** 20;
+
+/// Set the reference timestamp to the actual time
+pub fn set_reference(pin: u8) void {
+    var micros = Libz.timer.micros();
+    time_reference[pin] = micros;
+    did_interrupt_occur[pin] = false;
+}
+
+fn update_pin_time(pin: u8) void {
+    var micros = Libz.timer.micros();
+    last_time[pin] = micros;
+}
+
+pub fn get_last_time(pin: u8) u32 {
+    return last_time[pin];
+}
+
+pub fn get_time_reference(pin: u8) u32 {
+    return time_reference[pin];
+}
+
+fn handle_pin_interrupt(pin: u8) void {
+    update_pin_time(pin);
+    // Update the interrupt control register in order to stop
+    // this pin from interrupting if not needed
+    toggle_interrupt(pin, do_interrupt[pin]);
+}
+
 const PinInterruptType = enum {
     Rising,
     Falling,
@@ -113,6 +149,35 @@ fn detect_interrupt(port: Port) PinInterruptError!PinInterrupt {
     }
 
     return .UnknownError;
+}
+
+pub fn toggle_pin_interrupt(pin_id: u8, enabled: bool) void {
+    switch (pin_id) {
+        0...7 => {
+            if (enabled) {
+                PCMSK2.write(PCMSK2.read() | GPIO.itb(pin_id));
+            } else {
+                PCMSK2.write(PCMSK2.read() & ~GPIO.itb(pin_id));
+            }
+        },
+        8...13 => {
+            if (enabled) {
+                PCMSK0.write(PCMSK0.read() | GPIO.itb(pin_id));
+            } else {
+                PCMSK0.write(PCMSK0.read() & ~GPIO.itb(pin_id));
+            }
+        },
+        14...19 => {
+            if (enabled) {
+                PCMSK1.write(PCMSK1.read() | GPIO.itb(pin_id));
+            } else {
+                PCMSK1.write(PCMSK1.read() & ~GPIO.itb(pin_id));
+            }
+        },
+        else => {
+            return GPIO_ERROR.NON_EXISTING_DIGITAL_PIN;
+        },
+    }
 }
 
 /// Attach an ISR at runtime
@@ -255,7 +320,9 @@ export fn _pcint0() callconv(.Naked) void {
     var oldSREG: u8 = SREG.read();
 
     var a = detect_interrupt(.B) catch null;
-    _ = a;
+    if (a) |pin| {
+        handle_pin_interrupt(a);
+    }
 
     SREG.write(oldSREG);
     pop();
@@ -270,7 +337,9 @@ export fn _pcint1() callconv(.Naked) void {
     var oldSREG: u8 = SREG.read();
 
     var a = detect_interrupt(.B) catch null;
-    _ = a;
+    if (a) |pin| {
+        handle_pin_interrupt(a);
+    }
 
     SREG.write(oldSREG);
     pop();
@@ -285,7 +354,9 @@ export fn _pcint2() callconv(.Naked) void {
     var oldSREG: u8 = SREG.read();
 
     var a = detect_interrupt(.B) catch null;
-    _ = a;
+    if (a) |pin| {
+        handle_pin_interrupt(a);
+    }
 
     SREG.write(oldSREG);
     pop();
