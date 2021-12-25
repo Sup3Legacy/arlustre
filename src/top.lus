@@ -86,6 +86,16 @@ let
    o = received;
 tel;
 
+-- Simple mapping of the position of the joystick to the LED matrix
+node joystick() returns (o: bool);
+var x: int;
+    y: int;
+let
+   y = map_int(1023 - read_analog(15), 0, 1000, 0, 7);
+   x = map_int(read_analog(16), 0, 1000, 0, 7);
+   -- Only turn off last pixel if the coordinates did change
+   o = toggle_pixel(x, y, true, true) or toggle_pixel(0 -> pre x, 0 -> pre y, false, (x <> (0 -> pre x)) or (y <> (0 -> pre y)));
+tel;
 
 -- Hardware setup :
 -- LED on pins 2, 3, 4, 6 (configured as OUTPUT)
@@ -101,6 +111,7 @@ var i: bool;
    on_off: bool;
    period: int;
    distance: bool;
+   joy: bool;
 let
    period = div(read_analog(14), 64) + 1;
    j = declare_once(5, 0);
@@ -111,4 +122,5 @@ let
    o = led_control(4, read_pin_state(5));
    n = print_int(period, false, true);
    distance = print_distance();
+   joy = joystick();
 tel;

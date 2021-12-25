@@ -16,4 +16,8 @@ external fun read_analog(pin: int) returns (i: int)
 
 external fun random(at_least: int; less_than: int) returns (i: int)
 
+external fun map_int(x: int; in_min: int; in_max: int; out_min: int; out_max: int) returns (i: int)
+
+external fun toggle_pixel(x: int; y: int; statee: bool; do_step: bool) returns (b: bool)
+
 external fun time_pulse(outp: int; inp: int; do_step: bool) returns(b: bool; l: int; h: int)

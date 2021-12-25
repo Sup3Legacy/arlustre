@@ -48,7 +48,7 @@ fn fillRegister(reg: u8, data: u8) void {
     //GPIO.DIGITAL_WRITE(CLOCK_pin, .LOW) catch {};
 }
 
-pub var LED_buffer: [8]u8 = [_]u8{2} ** 8;
+pub var LED_buffer: [8]u8 = [_]u8{0} ** 8;
 
 pub fn draw() void {
     comptime var i = 0;
@@ -65,7 +65,6 @@ pub fn init() void {
 
     GPIO.DIGITAL_WRITE(CLOCK_pin, .HIGH) catch {};
     fillRegister(@enumToInt(Instr.Shutdown), 0x01);
-    Libz.Utilities.delay(1_000);
     fillRegister(@enumToInt(Instr.ScanLimit), 0x07);
     fillRegister(@enumToInt(Instr.DecodeMode), 0x00);
 
@@ -73,7 +72,7 @@ pub fn init() void {
 
     var i: u8 = 1;
     while (i < 9) : (i += 1) {
-        fillRegister(i, 0x01);
+        fillRegister(i, 0x0);
     }
 
     fillRegister(@enumToInt(Instr.Intensity), 0x08);

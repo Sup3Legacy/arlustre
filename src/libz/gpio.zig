@@ -212,6 +212,7 @@ pub fn ANALOG_READ(pin_id: u8) usize {
     ADCSRA.write(ADCSRA.read() | (1 << 7));
     // Select pin. First part is the pin number (n.b. 0x1111 would be the temperature sensor)
     // and second the reference
+    ADMUX.write(ADMUX.read() & ~@as(u8, 0x07));
     ADMUX.write(ADMUX.read() | ((pin_id - 14) & 0x07) | (1 << 6));
     // Start conversion
     ADCSRA.write(ADCSRA.read() | (1 << 6));

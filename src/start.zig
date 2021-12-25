@@ -56,7 +56,7 @@ pub fn bootstrap() void {
     Serial.write_ch('\n');
 
     interrupt.sei();
-    //Max7219.init();
+    Max7219.init();
     //delay(100_000);
     //Max7219.draw();
     //var i: u8 = 0;
@@ -104,6 +104,7 @@ pub fn bootstrap() void {
         //delay(100_000);
         //Serial.write("Bug, bug, bug\n\r");
         Libz.Utilities.no_op();
+        
         //if (on) {
         //    on = false;
         //    delay(100_000);

@@ -16,6 +16,8 @@ pub const print_int_out = struct { b: bool };
 pub const print_long_out = struct { b: bool };
 pub const read_analog_out = struct { i: isize };
 pub const random_out = struct { i: isize };
+pub const map_int_out = struct { i: isize };
+pub const toggle_pixel_out = struct { b: bool };
 pub const time_pulse_out = struct { b: bool, h: isize, l: isize };
 
 pub fn change_pin_state_step(pin: isize, state: bool, out: *change_pin_state_out) void {
@@ -88,6 +90,20 @@ pub fn read_analog_step(pin: isize, out: *read_analog_out) void {
 
 pub fn random_step(at_least: isize, less_than: isize, out: *random_out) void {
     out.i = Libz.Rand.get_random(at_least, less_than);
+}
+
+//return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+
+pub fn map_int_step(x: isize, in_min: isize, in_max: isize, out_min: isize, out_max: isize, out: *map_int_out) void {
+    out.i = @floatToInt(isize, (@intToFloat(f32, x) - @intToFloat(f32, in_min)) * (@intToFloat(f32, out_max) - @intToFloat(f32, out_min)) / (@intToFloat(f32, in_max) - @intToFloat(f32, in_min)) + @intToFloat(f32, out_min));
+}
+
+pub fn toggle_pixel_step(x: isize, y: isize, state: bool, do_step: bool, out: *toggle_pixel_out) void {
+    if (do_step) {
+        Libz.Max7219.toggle_pixel(@intCast(u8, x), @intCast(u8, y), state);
+        Libz.Max7219.draw();
+        out.b = true;
+    }
 }
 
 pub fn time_pulse_step(outp: isize, inp: isize, do_step: bool, out: *time_pulse_out) void {
