@@ -1,24 +1,24 @@
 const Libz = @import("libz.zig");
-const __MMIO = @import("mmio.zig").__MMIO;
+const MMIO = @import("mmio.zig").MMIO;
 
-pub const PINB = __MMIO(0x23, u8);
-pub const DDRB = __MMIO(0x24, u8);
-pub const PORTB = __MMIO(0x25, u8);
+pub const PINB = MMIO(0x23, u8, u8);
+pub const DDRB = MMIO(0x24, u8, u8);
+pub const PORTB = MMIO(0x25, u8, u8);
 
-pub const PINC = __MMIO(0x26, u8);
-pub const DDRC = __MMIO(0x27, u8);
-pub const PORTC = __MMIO(0x28, u8);
+pub const PINC = MMIO(0x26, u8, u8);
+pub const DDRC = MMIO(0x27, u8, u8);
+pub const PORTC = MMIO(0x28, u8, u8);
 
-pub const PIND = __MMIO(0x29, u8);
-pub const DDRD = __MMIO(0x2A, u8);
-pub const PORTD = __MMIO(0x2B, u8);
+pub const PIND = MMIO(0x29, u8, u8);
+pub const DDRD = MMIO(0x2A, u8, u8);
+pub const PORTD = MMIO(0x2B, u8, u8);
 
-pub const ADCL = __MMIO(0x78, u8);
-pub const ADCH = __MMIO(0x79, u8);
-pub const ADMUX = __MMIO(0x7c, u8);
-pub const ADC = __MMIO(0x78, u16);
-pub const ADCSRA = __MMIO(0x7a, u8);
-pub const ADCSRB = __MMIO(0x7b, u8);
+pub const ADCL = MMIO(0x78, u8, u8);
+pub const ADCH = MMIO(0x79, u8, u8);
+pub const ADMUX = MMIO(0x7c, u8, u8);
+pub const ADC = MMIO(0x78, u16, u16);
+pub const ADCSRA = MMIO(0x7a, u8, u8);
+pub const ADCSRB = MMIO(0x7b, u8, u8);
 
 const PORT_MODE = enum {
     INPUT,
@@ -26,7 +26,7 @@ const PORT_MODE = enum {
     INPUT_PULLUP,
 };
 
-const VALUE = enum {
+pub const VALUE = enum {
     LOW,
     HIGH,
 };
@@ -63,42 +63,42 @@ pub fn DIGITAL_MODE(pin_id: u8, mode: PORT_MODE) GPIO_ERROR!void {
     switch (pin_id) {
         0...7 => {
             switch (mode) {
-                .INPUT => {
+                .OUTPUT => {
                     DDRD.write(DDRD.read() | itb(pin_id));
                 },
                 .INPUT_PULLUP => {
                     DDRD.write(DDRD.read() | itb(pin_id));
                     PORTD.write(PORTD.read() | itb(pin_id));
                 },
-                .OUTPUT => {
+                .INPUT => {
                     DDRD.write(DDRD.read() & ~itb(pin_id));
                 },
             }
         },
         8...13 => {
             switch (mode) {
-                .INPUT => {
+                .OUTPUT => {
                     DDRB.write(DDRB.read() | itb(pin_id));
                 },
                 .INPUT_PULLUP => {
                     DDRB.write(DDRB.read() | itb(pin_id));
                     PORTB.write(PORTB.read() | itb(pin_id));
                 },
-                .OUTPUT => {
+                .INPUT => {
                     DDRB.write(DDRB.read() & ~itb(pin_id));
                 },
             }
         },
         14...19 => {
             switch (mode) {
-                .INPUT => {
+                .OUTPUT => {
                     DDRC.write(DDRC.read() | itb(pin_id));
                 },
                 .INPUT_PULLUP => {
                     DDRC.write(DDRC.read() | itb(pin_id));
                     PORTC.write(PORTC.read() | itb(pin_id));
                 },
-                .OUTPUT => {
+                .INPUT => {
                     DDRC.write(DDRC.read() & ~itb(pin_id));
                 },
             }
@@ -141,25 +141,31 @@ pub fn READ_DIGITAL_MODE(pin_id: u8) GPIO_ERROR!PORT_MODE {
 pub fn DIGITAL_WRITE(pin_id: u8, value: VALUE) GPIO_ERROR!void {
     switch (pin_id) {
         0...7 => {
+            var actual = PORTD.read();
             if (value == .HIGH) {
-                PORTD.write(PORTD.read() | itb(pin_id));
+                actual |= (@as(u8, 1) << @intCast(u3, pin_id));
             } else {
-                PORTD.write(PORTD.read() & ~itb(pin_id));
+                actual &= ~(@as(u8, 1) << @intCast(u3, pin_id));
             }
+            PORTD.write(actual);
         },
         8...13 => {
+            var actual = PORTB.read();
             if (value == .HIGH) {
-                DDRB.write(DDRB.read() | itb(pin_id));
+                actual |= (@as(u8, 1) << @intCast(u3, pin_id - 8));
             } else {
-                DDRB.write(DDRB.read() & ~itb(pin_id));
+                actual &= ~(@as(u8, 1) << @intCast(u3, pin_id - 8));
             }
+            PORTB.write(actual);
         },
         14...19 => {
+            var actual = PORTC.read();
             if (value == .HIGH) {
-                PORTC.write(PORTC.read() | itb(pin_id));
+                actual |= (@as(u8, 1) << @intCast(u3, pin_id - 14));
             } else {
-                PORTC.write(PORTC.read() & ~itb(pin_id));
+                actual &= ~(@as(u8, 1) << @intCast(u3, pin_id - 14));
             }
+            PORTC.write(actual);
         },
         else => {
             return GPIO_ERROR.NON_EXISTING_DIGITAL_PIN;
@@ -170,7 +176,7 @@ pub fn DIGITAL_WRITE(pin_id: u8, value: VALUE) GPIO_ERROR!void {
 pub fn DIGITAL_READ(pin_id: u8) GPIO_ERROR!VALUE {
     var is_input = READ_DIGITAL_MODE(pin_id) catch .INPUT;
     if (is_input != .INPUT) {
-        return GPIO_ERROR.CANT_READ_OUTPUT;
+        //return GPIO_ERROR.CANT_READ_OUTPUT;
     }
     switch (pin_id) {
         0...7 => {

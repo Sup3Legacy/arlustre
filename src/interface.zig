@@ -1,5 +1,6 @@
 const Libz = @import("./libz/libz.zig");
 const Interrupts = Libz.Interrupts;
+const GPIO = Libz.GpIO;
 
 pub const change_pin_state_out = struct {
     b: isize,
@@ -96,24 +97,36 @@ pub fn time_pulse_step(outp: isize, inp: isize, do_step: bool, out: *time_pulse_
 
     if (do_step) {
         // Temp
-        Interrupts.toggle_pinint(.B, true);
+
         //Interrupts.toggle_pinint(.C, true);
         //Interrupts.toggle_pinint(.D, true);
-
-        // Send the signal
-        Libz.GpIO.DIGITAL_WRITE(@intCast(u8, outp), .LOW) catch {};
-        // Set the time reference for the
+        //Interrupts.PCIFR.write(Interrupts.PCIFR.read() | 1);
         Interrupts.set_reference(in_pin);
         Interrupts.did_interrupt_occur[in_pin] = false;
+        asm volatile ("nop" ::: "memory");
         // Only interrupt once please
         // * In the future, we may wish to interrupt multiple times ?
-        Interrupts.do_interrupt[in_pin] = false;
+        Interrupts.do_interrupt[in_pin] = true;
+        Interrupts.time_to_interupt[in_pin] = 1;
+        Interrupts.toggle_pin_interrupt(in_pin, true);
+        Interrupts.toggle_pinint(.B, true);
+
+        // Send the signal
+        GPIO.PORTD.write(GPIO.PORTD.read() & ~@as(u8, 1 << 7));
+        //Libz.GpIO.DIGITAL_WRITE(@intCast(u8, outp), .LOW) catch {};
+        Libz.Utilities.delay(4);
+        GPIO.PORTD.write(GPIO.PORTD.read() | 1 << 7);
+        //Libz.GpIO.DIGITAL_WRITE(@intCast(u8, outp), .HIGH) catch {};
+        // Set the time reference for the
+
         out.b = false;
         out.l = 0;
         out.h = 0;
-        Libz.Utilities.delay(16_000);
-        Libz.GpIO.DIGITAL_WRITE(@intCast(u8, outp), .HIGH) catch {};
-        Interrupts.toggle_pin_interrupt(in_pin, true);
+        Libz.Utilities.delay(4);
+        GPIO.PORTD.write(GPIO.PORTD.read() & ~@as(u8, 1 << 7));
+
+        //Libz.GpIO.DIGITAL_WRITE(@intCast(u8, outp), .LOW) catch {};
+
     } else {
         var did_occur = Interrupts.did_interrupt_occur[in_pin];
         out.b = did_occur;

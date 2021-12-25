@@ -1,23 +1,26 @@
-pub fn __MMIO(comptime addr: usize, comptime intType: type) type {
+pub fn MMIO(comptime addr: usize, comptime IntT: type, comptime PackedT: type) type {
     return struct {
-        pub fn read() intType {
-            const ptr = @intToPtr(*volatile intType, addr);
-            return ptr.*;
+        pub fn ptr() *volatile IntT {
+            return @intToPtr(*volatile IntT, addr);
         }
-        pub fn write(data: intType) void {
-            const ptr = @intToPtr(*volatile intType, addr);
-            ptr.* = data;
+        pub fn read() PackedT {
+            const intVal = ptr().*;
+            return @bitCast(PackedT, intVal);
+        }
+        pub fn write(val: PackedT) void {
+            const intVal = @bitCast(IntT, val);
+            ptr().* = intVal;
+        }
+        pub fn readInt() IntT {
+            return ptr().*;
+        }
+        pub fn writeInt(val: IntT) void {
+            ptr().* = val;
+        }
+        pub fn bit(val: PackedT) IntT {
+            const intVal = @bitCast(IntT, val);
+            return intVal;
         }
     };
 }
 
-pub fn MMIO(comptime addr: usize, comptime intType: type, comptime reprType: type) type {
-    return struct {
-        pub fn read() reprType {
-            return @bitCast(reprType, __MMIO(addr, intType).read());
-        }
-        pub fn write(data: reprType) void {
-            __MMIO(addr, intType).write(@bitCast(intType, data));
-        }
-    };
-}

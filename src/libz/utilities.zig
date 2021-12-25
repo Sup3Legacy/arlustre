@@ -15,6 +15,7 @@ pub fn set_SP(new_value: u16) void {
     // TODO in asm because changing the SP requires some thinking
 }
 
+// ~16 instructions per delay unit so ~~50 clock cycle
 pub fn delay(m: u32) void {
     var i: u32 = 0;
     while (i < m) {

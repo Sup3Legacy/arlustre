@@ -7,3 +7,4 @@ pub const Utilities = @import("utilities.zig");
 pub const GpIO = @import("gpio.zig");
 pub const Timer = @import("timer.zig");
 pub const Rand = @import("rand.zig");
+pub const Max7219 = @import("max7219.zig");

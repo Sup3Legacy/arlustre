@@ -80,10 +80,10 @@ var cloc: bool;
    h : int;
    print_n: bool;
 let
-   cloc = counter(64);
+   cloc = counter(16);
    (received, l, h) = time_pulse(7, 9, cloc);
    print_n = print_long(l, h, received, true);
-   o = true;
+   o = received;
 tel;
 
 

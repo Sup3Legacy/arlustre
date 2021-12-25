@@ -7,6 +7,7 @@ const utilities = Libz.Utilities;
 const Serial = Libz.Serial;
 const gpio = Libz.GpIO;
 const timer = Libz.Timer;
+const Max7219 = Libz.Max7219;
 
 const main = @import("main.zig");
 
@@ -55,10 +56,21 @@ pub fn bootstrap() void {
     Serial.write_ch('\n');
 
     interrupt.sei();
+    //Max7219.init();
+    //delay(100_000);
+    //Max7219.draw();
+    //var i: u8 = 0;
+    //while (i < 8) : (i += 1) {
+    //    Max7219.toggle_pixel(i, i, true);
+    //    Max7219.draw();
+    //    delay(10_000);
+    //}
+    //delay(100_000);
+    Serial.write("Hihou.\n\r");
 
     // Attach the step function to the timer1 interrupt
     interrupt._attach_interrupt(13, @ptrToInt(@import("main.zig").step));
-    timer.init_timer1(10_000);
+    timer.init_timer1(20_000);
 
     //while (true) {
     //    Serial.write_u32(timer.micros());

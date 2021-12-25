@@ -13,6 +13,7 @@ pub inline fn cli() void {
     asm volatile ("cli" ::: "memory");
 }
 
+pub const PCIFR = MMIO(0x1b, u8, u8);
 // en/disable pin-interrupts on a per-port basis
 const PCICR = MMIO(0x68, u8, u8);
 // Pin interrupt mask on port B
@@ -49,6 +50,8 @@ pub var did_interrupt_occur: [20]bool = [_]bool{false} ** 20;
 
 pub var do_interrupt: [20]bool = [_]bool{false} ** 20;
 
+pub var time_to_interupt: [20]u8 = [_]u8{0} ** 20;
+
 /// Set the reference timestamp to the actual time
 pub fn set_reference(pin: u8) void {
     var micros = Libz.Timer.micros();
@@ -76,9 +79,18 @@ pub fn reset_pin_interrupt(pin: u8) void {
 
 fn handle_pin_interrupt(pin: u8) void {
     update_pin_time(pin);
-    did_interrupt_occur[pin] = true;
+
     // Update the interrupt control register in order to stop
     // this pin from interrupting if not needed
+    if (time_to_interupt[pin] > 0) {
+        time_to_interupt[pin] -= 1;
+        set_reference(pin);
+        // We do not want to record this particular interrupt
+        did_interrupt_occur[pin] = false;
+    } else {
+        did_interrupt_occur[pin] = true;
+        do_interrupt[pin] = false;
+    }
     toggle_pin_interrupt(pin, do_interrupt[pin]);
 }
 
@@ -333,11 +345,7 @@ export fn _pcint0() callconv(.Interrupt) void {
     //const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     //var oldSREG: u8 = SREG.read();
 
-    //@import("../start.zig").on = true;
-    //did_interrupt_occur[9] = true;
-    //last_time[9] = Libz.Timer.micros();
     var a = detect_interrupt(.B) catch null;
-    //var a: ?PinInterrupt = PinInterrupt {.Rising = 9};
     if (a) |pin| {
         handle_pin_interrupt(pin_interrupt_to_pin(pin));
     }
@@ -349,42 +357,22 @@ export fn _pcint0() callconv(.Interrupt) void {
 }
 
 /// Pin change int 1
-export fn _pcint1() callconv(.Naked) void {
-    push();
-    const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
-    var oldSREG: u8 = SREG.read();
-
-    @import("../start.zig").on = true;
-
+export fn _pcint1() callconv(.Interrupt) void {
+    asm volatile ("cli" ::: "memory");
     var a = detect_interrupt(.C) catch null;
 
     if (a) |pin| {
         handle_pin_interrupt(pin_interrupt_to_pin(pin));
     }
-
-    SREG.write(oldSREG);
-    pop();
-
-    asm volatile ("reti");
 }
 
 /// Pin change int 2
-export fn _pcint2() callconv(.Naked) void {
-    push();
-    const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
-    var oldSREG: u8 = SREG.read();
-
-    @import("../start.zig").on = true;
-
+export fn _pcint2() callconv(.Interrupt) void {
+    asm volatile ("cli" ::: "memory");
     var a = detect_interrupt(.D) catch null;
     if (a) |pin| {
         handle_pin_interrupt(pin_interrupt_to_pin(pin));
     }
-
-    SREG.write(oldSREG);
-    pop();
-
-    asm volatile ("reti");
 }
 
 /// Watchdog timeout
@@ -457,7 +445,7 @@ export fn _tim1_compa() callconv(.Naked) void {
 }
 // 13 0x0018 TIMER1 COMPB Timer/Coutner1 Compare Match B
 export fn _tim1_compb() callconv(.Interrupt) void {
-    asm volatile ("cli" ::: "memory");
+    //asm volatile ("cli" ::: "memory");
     //push();
     //asm volatile ("nop" ::: "memory");
     //const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
@@ -515,17 +503,8 @@ export fn _tim0_compb() callconv(.Naked) void {
     asm volatile ("reti");
 }
 // 17 0x0020 TIMER0 OVF Timer/Counter0 Overflow
-export fn _tim0_ovf() callconv(.Naked) void {
-    push();
-    const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
-    var oldSREG: u8 = SREG.read();
-    //push();
+export fn _tim0_ovf() callconv(.Interrupt) void {
     Libz.Timer.timer0_overflow_int();
-    //pop();
-    SREG.write(oldSREG);
-    pop();
-    //Libz.Serial.write_ch('x');
-    asm volatile ("reti");
 }
 // 18 0x0022 SPI, STC SPI Serial Transfer Complete
 // 19 0x0024 USART, RX USART Rx Complete
