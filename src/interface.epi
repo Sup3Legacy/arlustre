@@ -21,3 +21,7 @@ external fun map_int(x: int; in_min: int; in_max: int; out_min: int; out_max: in
 external fun toggle_pixel(x: int; y: int; statee: bool; do_step: bool) returns (b: bool)
 
 external fun time_pulse(outp: int; inp: int; do_step: bool) returns(b: bool; l: int; h: int)
+
+external fun int_of_float(f: float) returns(i: int)
+
+external fun float_of_int(i: int) returns(f: float)

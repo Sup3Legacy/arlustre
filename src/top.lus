@@ -79,11 +79,14 @@ var cloc: bool;
    l: int;
    h : int;
    print_n: bool;
+   distance: float;
 let
    cloc = counter(16);
    (received, l, h) = time_pulse(7, 9, cloc);
-   print_n = print_long(l, h, received, true);
+   --print_n = print_long(l, h, received, true);
    o = received;
+   distance = (float_of_int(l) +. float_of_int(h) *. 256.0) *. 0.017;
+   print_n = print_int(int_of_float(distance), received, true);
 tel;
 
 -- Simple mapping of the position of the joystick to the LED matrix

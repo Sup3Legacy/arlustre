@@ -19,6 +19,8 @@ pub const random_out = struct { i: isize };
 pub const map_int_out = struct { i: isize };
 pub const toggle_pixel_out = struct { b: bool };
 pub const time_pulse_out = struct { b: bool, h: isize, l: isize };
+pub const int_of_float_out = struct { i: isize };
+pub const float_of_int_out = struct { f: f32 };
 
 pub fn change_pin_state_step(pin: isize, state: bool, out: *change_pin_state_out) void {
     Libz.GpIO.DIGITAL_WRITE(@intCast(u8, pin), if (state) .HIGH else .LOW) catch {};
@@ -157,4 +159,12 @@ pub fn time_pulse_step(outp: isize, inp: isize, do_step: bool, out: *time_pulse_
             // Maybe do reset out.l and out.h?
         }
     }
+}
+
+pub fn int_of_float_step(f: f32, out: *int_of_float_out) void {
+    out.i = @floatToInt(isize, f);
+}
+
+pub fn float_of_int_step(i: isize, out: *float_of_int_out) void {
+    out.f = @intToFloat(f32, i);
 }

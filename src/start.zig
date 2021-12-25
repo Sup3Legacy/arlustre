@@ -70,7 +70,7 @@ pub fn bootstrap() void {
 
     // Attach the step function to the timer1 interrupt
     interrupt._attach_interrupt(13, @ptrToInt(@import("main.zig").step));
-    timer.init_timer1(20_000);
+    timer.init_timer1(10_000);
 
     //while (true) {
     //    Serial.write_u32(timer.micros());
