@@ -89,6 +89,11 @@ let
    print_n = print_int(int_of_float(distance), received, true);
 tel;
 
+node once(i: bool) returns (o: bool)
+let
+   o = i and (not (false -> pre i));
+tel;
+
 -- Simple mapping of the position of the joystick to the LED matrix
 node joystick() returns (o: bool);
 var x: int;
@@ -96,6 +101,42 @@ var x: int;
 let
    y = map_int(1023 - read_analog(15), 0, 1000, 0, 7);
    x = map_int(read_analog(16), 0, 1000, 0, 7);
+   -- Only turn off last pixel if the coordinates did change
+   o = toggle_pixel(x, y, true, true) or toggle_pixel(0 -> pre x, 0 -> pre y, false, (x <> (0 -> pre x)) or (y <> (0 -> pre y)));
+tel;
+
+-- More advanced joystick-LED driver.
+-- It allows the user to precisely move the pixel.
+node joystick_toggle() returns (o: bool);
+var x: int;
+    y: int;
+    updown: int;
+    leftright: int;
+    mx: int;
+    my: int;
+let
+   my = 1023 - read_analog(15);
+   mx = read_analog(16);
+   updown = if once(mx >= 800) then (
+         if (4 -> pre x) = 7 then 0 else 1
+      ) 
+      else (
+         if once(mx <= 200) then 
+         (
+            if (4 -> pre x) = 0 then 0 else -1
+         ) else 0 
+      );
+   leftright = if once(my >= 800) then (
+         if (4 -> pre y) = 7 then 0 else 1
+      ) 
+      else (
+         if once(my <= 200) then 
+         (
+            if (4 -> pre y) = 0 then 0 else -1
+         ) else 0 
+      );
+   x = (4 -> pre x) + updown;
+   y = (4 -> pre y) + leftright;
    -- Only turn off last pixel if the coordinates did change
    o = toggle_pixel(x, y, true, true) or toggle_pixel(0 -> pre x, 0 -> pre y, false, (x <> (0 -> pre x)) or (y <> (0 -> pre y)));
 tel;
@@ -116,7 +157,7 @@ var i: bool;
    distance: bool;
    joy: bool;
 let
-   period = div(read_analog(14), 64) + 1;
+   period = div(read_analog(14), 16) + 1;
    j = declare_once(5, 0);
    on_off = toggle_node(read_pin_state(5));
    i = led(32, 2, on_off);
@@ -125,5 +166,5 @@ let
    o = led_control(4, read_pin_state(5));
    n = print_int(period, false, true);
    distance = print_distance();
-   joy = joystick();
+   joy = joystick_toggle();
 tel;
