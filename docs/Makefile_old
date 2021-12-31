@@ -1,0 +1,45 @@
+XELATEX = xelatex
+BIBTEX = bibtex
+PANDOC = pandoc
+PANDOC-TEMPLATE = ./template.latex
+PANDOC-FLAGS = --template $(PANDOC-TEMPLATE) --listings --pdf-engine=$(XELATEX) -V geometry:a4paper -V geometry:margin=3cm
+PANDOC-BEAMER-FLAGS = --listings --slide-level 2 --pdf-engine=$(XELATEX)
+
+
+REPORT_SRC = report/report.md
+REPORT_PDF = report.pdf
+
+MAIN_TEX = main.tex
+PRESENTATION_SRC = slides/slides.md
+PRESENTATION_PDF = presentation.pdf
+REFERENCES_BIB = report/references.bib
+
+ARTIFACTS_DIR = artifacts
+
+References=true
+
+TEST=true
+
+all: report presentation
+	@ rm $(ARTIFACTS_DIR)/main.*
+
+clean:
+	rm -rf $(ARTIFACTS_DIR)
+
+mk_artifacts_dir:
+	mkdir -p $(ARTIFACTS_DIR)
+
+report: mk_artifacts_dir $(ARTIFACTS_DIR)/$(REPORT_PDF)
+
+presentation: mk_artifacts_dir $(ARTIFACTS_DIR)/$(PRESENTATION_PDF)
+
+$(ARTIFACTS_DIR)/$(REPORT_PDF): $(REPORT_SRC)
+	$(PANDOC) $(REPORT_SRC) $(PANDOC-FLAGS) -so artifacts/main.tex
+	cp $(REFERENCES_BIB) $(ARTIFACTS_DIR)
+	cd $(ARTIFACTS_DIR) &&
+	$(XELATEX) main.tex && $(BIBTEX) main && $(XELATEX) main.tex && $(XELATEX) main.tex && mv main.pdf report.pdf
+
+$(ARTIFACTS_DIR)/$(PRESENTATION_PDF): $(PRESENTATION_SRC)
+	$(PANDOC) -t beamer $(PRESENTATION_SRC) $(PANDOC-BEAMER-FLAGS) -o $@
+
+.PHONY: all clean mk_artifacts_dir

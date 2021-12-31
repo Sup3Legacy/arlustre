@@ -12,133 +12,52 @@ const Max7219 = Libz.Max7219;
 const main = @import("main.zig");
 
 var str = "Hello, world!\n\r";
-var str2 = "Hi!\n\r";
-
-var lol = [_]u8{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-
-pub var on: bool = false;
-
-pub fn toggle() callconv(.C) void {
-    if (on) {
-        //gpio.DIGITAL_WRITE(13, .LOW) catch {};
-    } else {
-        //gpio.DIGITAL_WRITE(13, .HIGH) catch {};
-    }
-    //Serial.write_ch('x');
-    on = !on;
-}
 
 pub fn init_soc() void {
     // Init serial interface
     Serial.init(19200);
     // Init ADC's prescaler. Must do in order to initialize the ADC
     gpio.ADCSRA.write(gpio.ADCSRA.read() | 0x07);
+    // Init the LED array controller
+    Max7219.init();
 }
 
-pub fn bootstrap() void {
+pub fn bootstrap() noreturn {
+    // Init the SoC
     init_soc();
-    delay(100_000);
+    utilities.delay(100_000);
+    // Hello, world!
     Serial.write(str);
 
-    //interrupt._attach_interrupt(12, @ptrToInt(toggle));
+    // Reset the Lustre state machine
     _ = @import("main.zig").main();
-    timer.enable_timer0_clock_int();
-    //@panic("Ousp...");
-    //var index: u8 = 0;
 
-    delay(100_000);
-    Serial.write_usize(@intCast(u8, interrupt.__ISR[12] >> 8));
-    delay(100_000);
-    Serial.write_usize(@intCast(u8, interrupt.__ISR[12]));
-    delay(100_000);
+    // Enable ticking ot keep track of time
+    timer.enable_timer0_clock_int();
+
+    // Print the address of the reset itnerrupt for debug
+    utilities.delay(100_000);
+    Serial.write_usize(@intCast(u8, interrupt.__ISR[0] >> 8));
+    utilities.delay(100_000);
+    Serial.write_usize(@intCast(u8, interrupt.__ISR[0]));
+
+    // Somehow screen needs a CRLF-type line ending
+    utilities.delay(100_000);
     Serial.write_ch('\r');
-    delay(100_000);
+    utilities.delay(100_000);
     Serial.write_ch('\n');
 
+    // Enable global interrupts
     interrupt.sei();
-    Max7219.init();
-    //delay(100_000);
-    //Max7219.draw();
-    //var i: u8 = 0;
-    //while (i < 8) : (i += 1) {
-    //    Max7219.toggle_pixel(i, i, true);
-    //    Max7219.draw();
-    //    delay(10_000);
-    //}
-    //delay(100_000);
-    Serial.write("Hihou.\n\r");
-
+    
     // Attach the step function to the timer1 interrupt
     interrupt._attach_interrupt(13, @ptrToInt(@import("main.zig").step));
+    // Initializes the timer1 interrupt (B overflow)
     timer.init_timer1(10_000);
 
-    //while (true) {
-    //    Serial.write_u32(timer.micros());
-    //    Serial.write_ch('\n');
-    //    Serial.write_ch('\r');
-    //    delay(100_000);
-    //}
-    //while (true) {
-    //    if (on) {
-    //        Serial.write_ch('o');
-    //    } else {
-    //        Serial.write_ch('x');
-    //    }
-    //    delay();
-    //    if (index == 20) {
-    //        timer.stop();
-    //    }
-    //    if (index == 25) {
-    //        timer.init_timer1(2_000_000);
-    //    }
-    //    index += 1;
-    //    //gpio.DIGITAL_WRITE(13, .HIGH) catch {};
-    //    //delay();
-    //
-    //    //delay();
-    //    //gpio.DIGITAL_WRITE(13, .LOW) catch {};
-    //    //Serial.write(str);
-    //    //Serial.write_ch('a');
-    //}
     while (true) {
-        //delay(100_000);
-        //Serial.write("Bug, bug, bug\n\r");
         Libz.Utilities.no_op();
         
-        //if (on) {
-        //    on = false;
-        //    delay(100_000);
-        //    Serial.write_ch('x');
-        //}
+        // Housekeeping stuff of needed
     }
-}
-
-// Some delay
-pub fn delay(m: u32) void {
-    //var old: u32 = Libz.Timer.micros();
-    //while (Libz.Timer.micros() - old < m) {
-    //    utilities.no_op();
-    //}
-    //Libz.Interrupts.cli();
-    //_ = m;
-    var i: u32 = 0;
-    while (i < m) {
-        i += 1;
-        asm volatile ("nop" ::: "memory");
-    }
-    //Libz.Interrupts.sei();
-
-    //var n: u16 = m;
-    //if (n <= 1) {
-    //    return;
-    //}
-    //
-    //n = (n << 1) + n; // x3 us, = 5 cycles
-    //
-    //n -= 5; //2 cycles
-    //asm volatile (
-    //    \\1: sbiw %0, 1
-    //    \\ brne 1b
-    //    : [n] "=w" (n) : [n] "0" (n)// 2 cycles
-    //);
 }
