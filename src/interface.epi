@@ -1,27 +1,48 @@
-external fun declare_io(pin: int; mode: int; do_declare: bool) returns (b: int)
+-- Enable I/O OUTPUT or INPUT.
+-- mode : true for OUTPUT, false for INPUT
+external fun declare_io(pin: int; mode: bool; do_declare: bool) returns (b: int)
 
+-- Change output
+-- mode : true for HIGH, false for LOW
 external fun change_pin_state(pin: int; mode: bool) returns (b: int)
 
+-- Read digital pin
+-- b : true if HIGH, etc.
 external fun read_pin_state(pin: int) returns (b: bool)
 
+-- Modulo operation
 external fun modulo(a: int; b: int) returns (c: int)
 
+-- division operation
 external fun div(a: int; b: int) returns (c: int)
 
+-- Print integer
 external fun print_int(i: int; do_print: bool; endline: bool) returns (b: bool)
 
+-- Print long (u32)
 external fun print_long(l: int; h: int; do_print: bool; endline: bool) returns (b: bool)
 
+-- Read on analog pin using the ADC
 external fun read_analog(pin: int) returns (i: int)
 
+-- Returns random integer within bounds
 external fun random(at_least: int; less_than: int) returns (i: int)
 
+-- Map (basic thing from Arduino libcore)
 external fun map_int(x: int; in_min: int; in_max: int; out_min: int; out_max: int) returns (i: int)
 
+-- High-level function to drive LED matrix
 external fun toggle_pixel(x: int; y: int; statee: bool; do_step: bool) returns (b: bool)
 
-external fun time_pulse(outp: int; inp: int; do_step: bool) returns(b: bool; l: int; h: int)
+-- sends a square signal on pin `outp` with a width of `signal_width`
+-- Then enables the pin change interrupt on pin `inp`. Waits the for `number_of_int`-th interrupt
+-- `do_step` : send the signal or wait for the interrupt
+-- `l` and `h` are the lower and higher part of the number of µs of the incoming signal
+-- `b` is whether an interrupt on `inp` has yet been received
+external fun time_pulse(outp: int; inp: int; signal_width: int; number_of_ints: int; do_step: bool) returns(b: bool; l: int; h: int)
 
+-- Conversion
 external fun int_of_float(f: float) returns(i: int)
 
+-- Conversion
 external fun float_of_int(i: int) returns(f: float)

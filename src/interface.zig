@@ -33,9 +33,9 @@ pub fn read_pin_state_step(pin: isize, out: *read_pin_state_out) void {
     } == .HIGH;
 }
 
-pub fn declare_io_step(pin: isize, mode: isize, do_declare: bool, out: *declare_io_out) void {
+pub fn declare_io_step(pin: isize, mode: bool, do_declare: bool, out: *declare_io_out) void {
     if (do_declare) {
-        Libz.GpIO.DIGITAL_MODE(@intCast(u8, pin), if (mode == 1) .OUTPUT else .INPUT) catch {};
+        Libz.GpIO.DIGITAL_MODE(@intCast(u8, pin), if (mode) .OUTPUT else .INPUT) catch {};
     }
     _ = out;
 }
@@ -108,42 +108,28 @@ pub fn toggle_pixel_step(x: isize, y: isize, state: bool, do_step: bool, out: *t
     }
 }
 
-pub fn time_pulse_step(outp: isize, inp: isize, do_step: bool, out: *time_pulse_out) void {
+pub fn time_pulse_step(outp: isize, inp: isize, signal_width: isize, number_of_ints: isize, do_step: bool, out: *time_pulse_out) void {
     var in_pin = @intCast(u8, inp);
     Libz.GpIO.DIGITAL_MODE(@intCast(u8, outp), .OUTPUT) catch {};
     Libz.GpIO.DIGITAL_MODE(@intCast(u8, inp), .INPUT) catch {};
 
     if (do_step) {
-        // Temp
-
-        //Interrupts.togglePinChangeIntPort(.C, true);
-        //Interrupts.togglePinChangeIntPort(.D, true);
-        //Interrupts.PCIFR.write(Interrupts.PCIFR.read() | 1);
         Interrupts.setReference(in_pin);
-        Interrupts.did_interrupt_occur[in_pin] = false;
-        asm volatile ("nop" ::: "memory");
-        // Only interrupt once please
-        // * In the future, we may wish to interrupt multiple times ?
+        Interrupts.resetPinInterrupt(in_pin);
         Interrupts.do_interrupt[in_pin] = true;
-        Interrupts.time_to_interupt[in_pin] = 1;
+        Interrupts.time_to_interupt[in_pin] = @intCast(u8, number_of_ints) -| 1;
         Interrupts.togglePinInterrupt(in_pin, true);
 
         // Send the signal
         GPIO.PORTD.write(GPIO.PORTD.read() & ~@as(u8, 1 << 7));
-        //Libz.GpIO.DIGITAL_WRITE(@intCast(u8, outp), .LOW) catch {};
-        Libz.Utilities.delay(4);
+        Libz.Utilities.delay(@intCast(u32, signal_width));
         GPIO.PORTD.write(GPIO.PORTD.read() | 1 << 7);
-        //Libz.GpIO.DIGITAL_WRITE(@intCast(u8, outp), .HIGH) catch {};
-        // Set the time reference for the
 
         out.b = false;
         out.l = 0;
         out.h = 0;
-        Libz.Utilities.delay(4);
+        Libz.Utilities.delay(2);
         GPIO.PORTD.write(GPIO.PORTD.read() & ~@as(u8, 1 << 7));
-
-        //Libz.GpIO.DIGITAL_WRITE(@intCast(u8, outp), .LOW) catch {};
-
     } else {
         var did_occur = Interrupts.did_interrupt_occur[in_pin];
         out.b = did_occur;
@@ -155,7 +141,7 @@ pub fn time_pulse_step(outp: isize, inp: isize, do_step: bool, out: *time_pulse_
             out.h = @bitCast(isize, high);
             Interrupts.resetPinInterrupt(in_pin);
         } else {
-            // Maybe do reset out.l and out.h?
+            // Both high and low value conserve their value
         }
     }
 }
