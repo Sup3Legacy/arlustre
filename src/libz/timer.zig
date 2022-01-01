@@ -4,7 +4,7 @@ const Constants = Libz.CONSTANTS;
 
 const TIMER1_RESOLUTION: u64 = 65536;
 
-/// Enables the TIMER1 with teh given period.
+/// Enables the TIMER1 with the given period.
 /// It will generate interrupts on TIMER1_B_COMP channel
 pub fn init_timer1(comptime period: u64) void {
     // `period` is in µs.
