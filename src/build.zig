@@ -29,6 +29,7 @@ pub fn build(b: *std.build.Builder) !void {
     obj.bundle_compiler_rt = false;
     obj.setBuildMode(.ReleaseSmall);
     obj.strip = true;
+    obj.emit_docs = .emit;
     obj.single_threaded = true;
     obj.step.dependOn(&top_move.step);
     var link = AvrLinkStep.init(b, "arlustre", &obj.output_path_source);

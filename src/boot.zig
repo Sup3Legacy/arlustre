@@ -1,6 +1,6 @@
-const Libz = @import("./libz/libz.zig");
-const std = @import("std");
-const Serial = Libz.Serial;
+pub const Libz = @import("./libz/libz.zig");
+pub const std = @import("std");
+pub const Serial = Libz.Serial;
 
 /// Entry point of the program
 /// It initializes the memory and ISRs and then jumps into the 

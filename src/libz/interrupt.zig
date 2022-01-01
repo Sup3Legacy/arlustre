@@ -296,7 +296,7 @@ pub export fn _handle_ir() void {
 }
 
 /// Hacky variable to check whether the .data segment has already been loaded into RAM. 
-/// If not, the ISR no. 0 must jump directly to _start instead of reading garbage in __ISR
+/// If not, the ISR no. 0 must jump directly to _start instead of reading garbage in `__ISR`
 /// This is because `__ISR` is located in the .Data segment. So any interrupt happening before
 /// this segment gets loaded into RAM would try to jump to whatever offset was at this place
 /// in memory before .data-loading
