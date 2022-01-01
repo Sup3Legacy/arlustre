@@ -6,9 +6,9 @@ const Serial = Libz.Serial;
 /// It initializes the memory and ISRs and then jumps into the 
 // bootstrap main function
 pub export fn _start() callconv(.Naked) noreturn {
-    @call(.{ .modifier = .never_inline }, copy_data_to_ram, .{});
-    @call(.{ .modifier = .never_inline }, clear_bss, .{});
-    //@call(.{.modifier = .never_inline }, update_isr, .{});
+    @call(.{ .modifier = .never_inline }, copyDataToRAM, .{});
+    @call(.{ .modifier = .never_inline }, clearBSS, .{});
+    //@call(.{.modifier = .never_inline }, updateISR, .{});
 
     // Set ISR magic number
     // This enables the use of the second-stage interrupt vector table
@@ -32,7 +32,7 @@ pub fn panic(msg: []const u8, stack_trace: ?*std.builtin.StackTrace) noreturn {
 }
 
 /// Not used for now
-fn update_isr() void {
+fn updateISR() void {
     asm volatile (
         \\ ldi r30, lo8(_start)
         \\ ldi r31, hi8(_start)
@@ -43,11 +43,11 @@ fn update_isr() void {
     //var ptr = @ptrCast(*volatile usize, &(@import("interrupt.zig").__ISR[0]));
     //var add = @ptrToInt(&(_start2));
     //ptr.* = add;
-    //@import("interrupt.zig").init_ISR();
+    //@import("interrupt.zig").initISR();
 }
 
 /// Load the .Data segment into RAM. Highly important!
-fn copy_data_to_ram() void {
+fn copyDataToRAM() void {
     asm volatile (
         \\ push r25
         \\
@@ -76,7 +76,7 @@ fn copy_data_to_ram() void {
 }
 
 /// Clear the .bss segment. Maybe kinda secondary
-fn clear_bss() void {
+fn clearBSS() void {
     asm volatile (
         \\ push r25
         \\

@@ -6,7 +6,7 @@ const TIMER1_RESOLUTION: u64 = 65536;
 
 /// Enables the TIMER1 with the given period.
 /// It will generate interrupts on TIMER1_B_COMP channel
-pub fn init_timer1(comptime period: u64) void {
+pub fn initTimer1(comptime period: u64) void {
     // `period` is in µs.
     const ICR1 = MMIO(0x86, u16, u16);
     const TCNT1 = MMIO(0x84, u16, u16);
@@ -64,7 +64,7 @@ pub fn stop() void {
 /// It is not used by any direct user-purpose but is used
 /// to keep track of time on a small scale, e.g. to be
 /// used by the `micros` function
-pub fn enable_timer0_clock_int() void {
+pub fn enableTimer0ClockInt() void {
     const TIMSK0 = MMIO(0x6E, u8, u8);
     const TCCR0A = MMIO(0x44, u8, u8); // here we add 0x20 to the address to account for the IO offset!
     const TCCR0B = MMIO(0x45, u8, u8);
@@ -76,7 +76,7 @@ pub fn enable_timer0_clock_int() void {
 }
 
 /// Disable the TIMER0 interrupt
-pub fn disable_timer0_clock_int() void {
+pub fn disableTimer0ClockInt() void {
     const TIMSK0 = MMIO(0x6E, u8, u8);
 
     // Add TCCR0A and TCCR0B handling
@@ -104,7 +104,7 @@ var timer0_millis: u32 = 0;
 var timer0_fract: u8 = 0;
 
 /// To attach to the TIM0_OVF int
-pub fn timer0_overflow_int() callconv(.C) void {
+pub fn timer0OverflowInt() callconv(.C) void {
     var m: u32 = timer0_millis;
     var f: u8 = timer0_fract;
 

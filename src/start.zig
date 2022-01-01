@@ -13,7 +13,7 @@ const main = @import("main.zig");
 
 var str = "Hello, world!\n\r";
 
-pub fn init_soc() void {
+pub fn initSOC() void {
     // Init serial interface
     Serial.init(19200);
     // Init ADC's prescaler. Must do in order to initialize the ADC
@@ -24,7 +24,7 @@ pub fn init_soc() void {
 
 pub fn bootstrap() noreturn {
     // Init the SoC
-    init_soc();
+    initSOC();
     utilities.delay(100_000);
     // Hello, world!
     Serial.write(str);
@@ -33,7 +33,7 @@ pub fn bootstrap() noreturn {
     _ = @import("main.zig").main();
 
     // Enable ticking ot keep track of time
-    timer.enable_timer0_clock_int();
+    timer.enableTimer0ClockInt();
 
     // Print the address of the reset itnerrupt for debug
     utilities.delay(100_000);
@@ -51,9 +51,9 @@ pub fn bootstrap() noreturn {
     interrupt.sei();
     
     // Attach the step function to the timer1 interrupt
-    interrupt._attach_interrupt(13, @ptrToInt(@import("main.zig").step));
+    interrupt.attachInterrupt(13, @ptrToInt(@import("main.zig").step));
     // Initializes the timer1 interrupt (B overflow)
-    timer.init_timer1(10_000);
+    timer.initTimer1(10_000);
 
     while (true) {
         Libz.Utilities.no_op();

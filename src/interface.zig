@@ -61,7 +61,7 @@ pub fn div_step(a: isize, b: isize, out: *div_out) void {
 }
 
 pub fn change_timer0_freq(period: isize, out: *change_timer0_out) void {
-    Libz.Timer.init_timer1(@as(u64, period));
+    Libz.Timer.initTimer1(@as(u64, period));
     _ = out;
 }
 
@@ -116,18 +116,17 @@ pub fn time_pulse_step(outp: isize, inp: isize, do_step: bool, out: *time_pulse_
     if (do_step) {
         // Temp
 
-        //Interrupts.toggle_pinint(.C, true);
-        //Interrupts.toggle_pinint(.D, true);
+        //Interrupts.togglePinChangeIntPort(.C, true);
+        //Interrupts.togglePinChangeIntPort(.D, true);
         //Interrupts.PCIFR.write(Interrupts.PCIFR.read() | 1);
-        Interrupts.set_reference(in_pin);
+        Interrupts.setReference(in_pin);
         Interrupts.did_interrupt_occur[in_pin] = false;
         asm volatile ("nop" ::: "memory");
         // Only interrupt once please
         // * In the future, we may wish to interrupt multiple times ?
         Interrupts.do_interrupt[in_pin] = true;
         Interrupts.time_to_interupt[in_pin] = 1;
-        Interrupts.toggle_pin_interrupt(in_pin, true);
-        Interrupts.toggle_pinint(.B, true);
+        Interrupts.togglePinInterrupt(in_pin, true);
 
         // Send the signal
         GPIO.PORTD.write(GPIO.PORTD.read() & ~@as(u8, 1 << 7));
@@ -149,12 +148,12 @@ pub fn time_pulse_step(outp: isize, inp: isize, do_step: bool, out: *time_pulse_
         var did_occur = Interrupts.did_interrupt_occur[in_pin];
         out.b = did_occur;
         if (did_occur) {
-            var diff = Interrupts.get_last_time(in_pin) -% Interrupts.get_time_reference(in_pin);
+            var diff = Interrupts.getLastTime(in_pin) -% Interrupts.getTimeReference(in_pin);
             var low = @intCast(usize, diff & 0x0000ffff);
             var high = @intCast(usize, (diff & 0xffff0000) >> 16);
             out.l = @bitCast(isize, low);
             out.h = @bitCast(isize, high);
-            Interrupts.reset_pin_interrupt(in_pin);
+            Interrupts.resetPinInterrupt(in_pin);
         } else {
             // Maybe do reset out.l and out.h?
         }

@@ -53,45 +53,45 @@ pub var do_interrupt: [20]bool = [_]bool{false} ** 20;
 pub var time_to_interupt: [20]u8 = [_]u8{0} ** 20;
 
 /// Set the reference timestamp to the actual time
-pub fn set_reference(pin: u8) void {
+pub fn setReference(pin: u8) void {
     var micros = Libz.Timer.micros();
     time_reference[pin] = micros;
     //last_time[pin] = micros;
     //did_interrupt_occur[pin] = false;
 }
 
-fn update_pin_time(pin: u8) void {
+fn updatePinTime(pin: u8) void {
     var micros = Libz.Timer.micros();
     last_time[pin] = micros;
 }
 
-pub fn get_last_time(pin: u8) u32 {
+pub fn getLastTime(pin: u8) u32 {
     return last_time[pin];
 }
 
-pub fn get_time_reference(pin: u8) u32 {
+pub fn getTimeReference(pin: u8) u32 {
     return time_reference[pin];
 }
 
-pub fn reset_pin_interrupt(pin: u8) void {
+pub fn resetPinInterrupt(pin: u8) void {
     did_interrupt_occur[pin] = false;
 }
 
-fn handle_pin_interrupt(pin: u8) void {
-    update_pin_time(pin);
+fn handlePinInterrupt(pin: u8) void {
+    updatePinTime(pin);
 
     // Update the interrupt control register in order to stop
     // this pin from interrupting if not needed
     if (time_to_interupt[pin] > 0) {
         time_to_interupt[pin] -= 1;
-        set_reference(pin);
+        setReference(pin);
         // We do not want to record this particular interrupt
         did_interrupt_occur[pin] = false;
     } else {
         did_interrupt_occur[pin] = true;
         do_interrupt[pin] = false;
     }
-    toggle_pin_interrupt(pin, do_interrupt[pin]);
+    togglePinInterrupt(pin, do_interrupt[pin]);
 }
 
 const PinInterruptType = enum {
@@ -105,7 +105,7 @@ const PinInterrupt = union(PinInterruptType) {
     Falling: u8,
 };
 
-fn pin_interrupt_to_pin(pi: PinInterrupt) u8 {
+fn pinInterruptToPin(pi: PinInterrupt) u8 {
     switch (pi) {
         PinInterrupt.Rising => |i| return i,
         PinInterrupt.Falling => |i| return i,
@@ -118,7 +118,7 @@ const PinInterruptError = error{
     UnknownError,
 };
 
-fn find_set_bit(arg: u8) PinInterruptError!u8 {
+fn findSetBit(arg: u8) PinInterruptError!u8 {
     var res: ?u8 = null;
     var i: u8 = 0;
     while (i < 8) : (i += 1) {
@@ -133,14 +133,14 @@ fn find_set_bit(arg: u8) PinInterruptError!u8 {
     return res orelse return PinInterruptError.NoChange;
 }
 
-fn detect_interrupt(port: Port) PinInterruptError!PinInterrupt {
+fn detectInterrupt(port: Port) PinInterruptError!PinInterrupt {
     switch (port) {
         .B => {
             var int_mask = PCMSK0.read();
             var new_status = GPIO.PINB.read();
             var masked_status = (new_status ^ last_pin_state.portB) & int_mask;
             last_pin_state.portB = new_status;
-            var index = find_set_bit(masked_status) catch |err| return err;
+            var index = findSetBit(masked_status) catch |err| return err;
             if (new_status & (@as(u8, 1) << @intCast(u3, index)) != 0) {
                 return PinInterrupt{ .Rising = index + 8 };
             } else {
@@ -152,7 +152,7 @@ fn detect_interrupt(port: Port) PinInterruptError!PinInterrupt {
             var new_status = GPIO.PINC.read();
             var masked_status = (new_status ^ last_pin_state.portC) & int_mask;
             last_pin_state.portC = new_status;
-            var index = find_set_bit(masked_status) catch |err| return err;
+            var index = findSetBit(masked_status) catch |err| return err;
             if (new_status & (@as(u8, 1) << @intCast(u3, index)) != 0) {
                 return PinInterrupt{ .Rising = index + 14 };
             } else {
@@ -164,7 +164,7 @@ fn detect_interrupt(port: Port) PinInterruptError!PinInterrupt {
             var new_status = GPIO.PIND.read();
             var masked_status = (new_status ^ last_pin_state.portD) & int_mask;
             last_pin_state.portD = new_status;
-            var index = find_set_bit(masked_status) catch |err| return err;
+            var index = findSetBit(masked_status) catch |err| return err;
             if (new_status & (@as(u8, 1) << @intCast(u3, index)) != 0) {
                 return PinInterrupt{ .Rising = index + 0 };
             } else {
@@ -176,14 +176,16 @@ fn detect_interrupt(port: Port) PinInterruptError!PinInterrupt {
     return .UnknownError;
 }
 
-pub fn toggle_pin_interrupt(pin_id: u8, enabled: bool) void {
+pub fn togglePinInterrupt(pin_id: u8, enabled: bool) void {
     switch (pin_id) {
         0...7 => {
             if (enabled) {
                 PCMSK2.write(PCMSK2.read() | GPIO.itb(pin_id));
+                
             } else {
                 PCMSK2.write(PCMSK2.read() & ~GPIO.itb(pin_id));
             }
+            togglePinChangeIntPort(.D, enabled);
         },
         8...13 => {
             if (enabled) {
@@ -191,6 +193,7 @@ pub fn toggle_pin_interrupt(pin_id: u8, enabled: bool) void {
             } else {
                 PCMSK0.write(PCMSK0.read() & ~GPIO.itb(pin_id));
             }
+            togglePinChangeIntPort(.B, enabled);
         },
         14...19 => {
             if (enabled) {
@@ -198,6 +201,7 @@ pub fn toggle_pin_interrupt(pin_id: u8, enabled: bool) void {
             } else {
                 PCMSK1.write(PCMSK1.read() & ~GPIO.itb(pin_id));
             }
+            togglePinChangeIntPort(.C, enabled);
         },
         else => {
             return;
@@ -207,7 +211,7 @@ pub fn toggle_pin_interrupt(pin_id: u8, enabled: bool) void {
 
 /// Attach an ISR at runtime
 /// Not operational for now
-pub fn _attach_interrupt(id: usize, addr: usize) void {
+pub fn attachInterrupt(id: usize, addr: usize) void {
     __ISR[id] = addr;
 }
 
@@ -302,7 +306,7 @@ pub export var __ISR_LOADED: u16 = 0x69;
 /// runtime ISR-vector.
 pub export var __ISR = [_]usize{0x068} ** 28;
 
-pub fn init_ISR() void {
+pub fn initISR() void {
     var index: u8 = 0;
     while (index < 28) : (index += 1) {
         __ISR[index] = @ptrToInt(_unknown_interrupt);
@@ -345,9 +349,9 @@ export fn _pcint0() callconv(.Interrupt) void {
     //const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     //var oldSREG: u8 = SREG.read();
 
-    var a = detect_interrupt(.B) catch null;
+    var a = detectInterrupt(.B) catch null;
     if (a) |pin| {
-        handle_pin_interrupt(pin_interrupt_to_pin(pin));
+        handlePinInterrupt(pinInterruptToPin(pin));
     }
 
     //SREG.write(oldSREG);
@@ -359,19 +363,19 @@ export fn _pcint0() callconv(.Interrupt) void {
 /// Pin change int 1
 export fn _pcint1() callconv(.Interrupt) void {
     asm volatile ("cli" ::: "memory");
-    var a = detect_interrupt(.C) catch null;
+    var a = detectInterrupt(.C) catch null;
 
     if (a) |pin| {
-        handle_pin_interrupt(pin_interrupt_to_pin(pin));
+        handlePinInterrupt(pinInterruptToPin(pin));
     }
 }
 
 /// Pin change int 2
 export fn _pcint2() callconv(.Interrupt) void {
     asm volatile ("cli" ::: "memory");
-    var a = detect_interrupt(.D) catch null;
+    var a = detectInterrupt(.D) catch null;
     if (a) |pin| {
-        handle_pin_interrupt(pin_interrupt_to_pin(pin));
+        handlePinInterrupt(pinInterruptToPin(pin));
     }
 }
 
@@ -504,7 +508,7 @@ export fn _tim0_compb() callconv(.Naked) void {
 }
 // 17 0x0020 TIMER0 OVF Timer/Counter0 Overflow
 export fn _tim0_ovf() callconv(.Interrupt) void {
-    Libz.Timer.timer0_overflow_int();
+    Libz.Timer.timer0OverflowInt();
 }
 // 18 0x0022 SPI, STC SPI Serial Transfer Complete
 // 19 0x0024 USART, RX USART Rx Complete
@@ -516,7 +520,7 @@ export fn _tim0_ovf() callconv(.Interrupt) void {
 // 25 0x0030 TWI 2-wire Serial Interface
 // 0x0032 SPM READY Store Program Memory Ready
 
-pub fn toggle_pinint(port: Port, state: bool) void {
+fn togglePinChangeIntPort(port: Port, state: bool) void {
     switch (port) {
         Port.B => {
             if (state) {
