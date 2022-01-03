@@ -18,7 +18,8 @@ pub const read_analog_out = struct { i: isize };
 pub const random_out = struct { i: isize };
 pub const map_int_out = struct { i: isize };
 pub const toggle_pixel_out = struct { b: bool };
-pub const time_pulse_out = struct { b: bool, h: isize, l: isize };
+pub const time_out = struct { b: bool, l: isize, h: isize };
+pub const time_pulse_out = struct { b: bool, l: isize, h: isize };
 pub const int_of_float_out = struct { i: isize };
 pub const float_of_int_out = struct { f: f32 };
 
@@ -108,7 +109,37 @@ pub fn toggle_pixel_step(x: isize, y: isize, state: bool, do_step: bool, out: *t
     }
 }
 
-pub fn time_pulse_step(outp: isize, inp: isize, signal_width: isize, number_of_ints: isize, do_step: bool, out: *time_pulse_out) void {
+pub fn time_step(inp: isize, state: isize, do_step: bool, out: *time_out) void {
+    var in_pin = @intCast(u8, inp);
+    Libz.GpIO.DIGITAL_MODE(@intCast(u8, inp), .INPUT) catch {};
+
+    if (do_step) {
+        Interrupts.setReference(in_pin);
+        Interrupts.resetPinInterrupt(in_pin);
+        Interrupts.do_interrupt[in_pin] = true;
+        Interrupts.interrupt_state[in_pin] = Interrupts.stateOfInt(state);
+        Interrupts.togglePinInterrupt(in_pin, true);
+
+        out.b = false;
+        out.l = 0;
+        out.h = 0;
+    } else {
+        var did_occur = Interrupts.did_interrupt_occur[in_pin];
+        out.b = did_occur;
+        if (did_occur) {
+            var diff = Interrupts.getLastTime(in_pin) -% Interrupts.getTimeReference(in_pin);
+            var low = @intCast(usize, diff & 0x0000ffff);
+            var high = @intCast(usize, (diff & 0xffff0000) >> 16);
+            out.l = @bitCast(isize, low);
+            out.h = @bitCast(isize, high);
+            Interrupts.resetPinInterrupt(in_pin);
+        } else {
+            // Both high and low value conserve their value
+        }
+    }
+}
+
+pub fn time_pulse_step(outp: isize, inp: isize, signal_width: isize, state: isize, do_step: bool, out: *time_pulse_out) void {
     var in_pin = @intCast(u8, inp);
     Libz.GpIO.DIGITAL_MODE(@intCast(u8, outp), .OUTPUT) catch {};
     Libz.GpIO.DIGITAL_MODE(@intCast(u8, inp), .INPUT) catch {};
@@ -117,19 +148,17 @@ pub fn time_pulse_step(outp: isize, inp: isize, signal_width: isize, number_of_i
         Interrupts.setReference(in_pin);
         Interrupts.resetPinInterrupt(in_pin);
         Interrupts.do_interrupt[in_pin] = true;
-        Interrupts.time_to_interupt[in_pin] = @intCast(u8, number_of_ints) -| 1;
+        Interrupts.interrupt_state[in_pin] = Interrupts.stateOfInt(state);
         Interrupts.togglePinInterrupt(in_pin, true);
 
         // Send the signal
-        GPIO.PORTD.write(GPIO.PORTD.read() & ~@as(u8, 1 << 7));
+        GPIO.DIGITAL_WRITE(@intCast(u8, outp), .HIGH) catch {};
         Libz.Utilities.delay(@intCast(u32, signal_width));
-        GPIO.PORTD.write(GPIO.PORTD.read() | 1 << 7);
+        GPIO.DIGITAL_WRITE(@intCast(u8, outp), .LOW) catch {};
 
         out.b = false;
         out.l = 0;
         out.h = 0;
-        Libz.Utilities.delay(2);
-        GPIO.PORTD.write(GPIO.PORTD.read() & ~@as(u8, 1 << 7));
     } else {
         var did_occur = Interrupts.did_interrupt_occur[in_pin];
         out.b = did_occur;

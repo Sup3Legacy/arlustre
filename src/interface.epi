@@ -35,11 +35,16 @@ external fun map_int(x: int; in_min: int; in_max: int; out_min: int; out_max: in
 external fun toggle_pixel(x: int; y: int; statee: bool; do_step: bool) returns (b: bool)
 
 -- sends a square signal on pin `outp` with a width of `signal_width`
--- Then enables the pin change interrupt on pin `inp`. Waits the for `number_of_int`-th interrupt
+-- Then enables the pin change interrupt on pin `inp`. 
+-- Waits the for interrupt that comes after a period on state `state`.
+-- `state` : 0 for LOW, 1 for HIGH and 2 for ANY
 -- `do_step` : send the signal or wait for the interrupt
 -- `l` and `h` are the lower and higher part of the number of µs of the incoming signal
 -- `b` is whether an interrupt on `inp` has yet been received
-external fun time_pulse(outp: int; inp: int; signal_width: int; number_of_ints: int; do_step: bool) returns(b: bool; l: int; h: int)
+external fun time_pulse(outp: int; inp: int; signal_width: int; statee: int; do_step: bool) returns(b: bool; l: int; h: int)
+
+-- Same thing as `time_pulse` but without the initial pulse on `outp`
+external fun time(inp: int; statee: int; do_step: bool) returns(b: bool; l: int; h: int)
 
 -- Conversion
 external fun int_of_float(f: float) returns(i: int)

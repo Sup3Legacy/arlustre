@@ -49,7 +49,6 @@ fn updateISR() void {
 /// Load the .Data segment into RAM. Highly important!
 fn copyDataToRAM() void {
     asm volatile (
-        \\ push r25
         \\
         \\ ldi r30, lo8(__data_load_start)
         \\ ldi r31, hi8(__data_load_start)
@@ -71,8 +70,7 @@ fn copyDataToRAM() void {
         \\ rjmp .ram_cpy_0
         \\
         \\.ram_cpy_2:
-        \\ pop r25
-        ::: "r30", "r31", "r28", "r29", "r26", "r27");
+        ::: "r30", "r31", "r28", "r29", "r26", "r27", "r25", "r20");
 }
 
 /// Clear the .bss segment. Maybe kinda secondary

@@ -82,7 +82,7 @@ var cloc: bool;
    distance: float;
 let
    cloc = counter(16);
-   (received, l, h) = time_pulse(7, 9, 4, 2, cloc);
+   (received, l, h) = time_pulse(7, 9, 4, 1, cloc);
    --print_n = print_long(l, h, received, true);
    o = received;
    distance = (float_of_int(l) +. float_of_int(h) *. 256.0) *. 0.017;

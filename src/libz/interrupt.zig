@@ -41,6 +41,20 @@ var last_pin_state = ports{
     .portD = 0,
 };
 
+const State = enum {
+    LOW,
+    HIGH,
+    ANY,
+};
+
+pub fn stateOfInt(i: isize) State {
+    switch (i) {
+        0 => {return .LOW;},
+        1 => {return .HIGH;},
+        else => {return .ANY;},
+    }
+}
+
 /// Timestamp reference for each pin. Used for `time_pulse`
 pub var time_reference: [20]u32 = [_]u32{0} ** 20;
 
@@ -50,7 +64,7 @@ pub var did_interrupt_occur: [20]bool = [_]bool{false} ** 20;
 
 pub var do_interrupt: [20]bool = [_]bool{false} ** 20;
 
-pub var time_to_interupt: [20]u8 = [_]u8{0} ** 20;
+pub var interrupt_state: [20]State = [_]State{.ANY} ** 20;
 
 /// Set the reference timestamp to the actual time
 pub fn setReference(pin: u8) void {
@@ -58,6 +72,10 @@ pub fn setReference(pin: u8) void {
     time_reference[pin] = micros;
     //last_time[pin] = micros;
     //did_interrupt_occur[pin] = false;
+}
+
+pub fn setInterruptState(pin: u8, state: State) void {
+    interrupt_state[pin] = state;
 }
 
 fn updatePinTime(pin: u8) void {
@@ -77,21 +95,49 @@ pub fn resetPinInterrupt(pin: u8) void {
     did_interrupt_occur[pin] = false;
 }
 
-fn handlePinInterrupt(pin: u8) void {
-    updatePinTime(pin);
-
-    // Update the interrupt control register in order to stop
-    // this pin from interrupting if not needed
-    if (time_to_interupt[pin] > 0) {
-        time_to_interupt[pin] -= 1;
-        setReference(pin);
-        // We do not want to record this particular interrupt
-        did_interrupt_occur[pin] = false;
-    } else {
-        did_interrupt_occur[pin] = true;
-        do_interrupt[pin] = false;
+fn handlePinInterrupt(pin_event: PinInterrupt) void {
+    switch (pin_event) {
+        PinInterrupt.Rising => |i| {
+            updatePinTime(i);
+            switch (interrupt_state[i]) {
+                State.LOW => {
+                    // Stop
+                    did_interrupt_occur[i] = true;
+                    do_interrupt[i] = false;
+                },
+                State.HIGH => {
+                    // Continue
+                    did_interrupt_occur[i] = false;
+                    setReference(i);
+                },
+                State.ANY => {
+                    // Stop
+                    did_interrupt_occur[i] = true;
+                    do_interrupt[i] = false;
+                },
+            }
+            togglePinInterrupt(i, do_interrupt[i]);
+        },
+        PinInterrupt.Falling => |i| {
+            updatePinTime(i);
+            switch (interrupt_state[i]) {
+                State.LOW => {
+                    did_interrupt_occur[i] = false;
+                    setReference(i);
+                },
+                State.HIGH => {
+                    did_interrupt_occur[i] = true;
+                    do_interrupt[i] = false;
+                },
+                State.ANY => {
+                    did_interrupt_occur[i] = true;
+                    do_interrupt[i] = false;
+                },
+            }
+            togglePinInterrupt(i, do_interrupt[i]);
+        },
     }
-    togglePinInterrupt(pin, do_interrupt[pin]);
+    
 }
 
 const PinInterruptType = enum {
@@ -351,7 +397,7 @@ export fn _pcint0() callconv(.Interrupt) void {
 
     var a = detectInterrupt(.B) catch null;
     if (a) |pin| {
-        handlePinInterrupt(pinInterruptToPin(pin));
+        handlePinInterrupt(pin);
     }
 
     //SREG.write(oldSREG);
@@ -366,7 +412,7 @@ export fn _pcint1() callconv(.Interrupt) void {
     var a = detectInterrupt(.C) catch null;
 
     if (a) |pin| {
-        handlePinInterrupt(pinInterruptToPin(pin));
+        handlePinInterrupt(pin);
     }
 }
 
@@ -375,7 +421,7 @@ export fn _pcint2() callconv(.Interrupt) void {
     asm volatile ("cli" ::: "memory");
     var a = detectInterrupt(.D) catch null;
     if (a) |pin| {
-        handlePinInterrupt(pinInterruptToPin(pin));
+        handlePinInterrupt(pin);
     }
 }
 
