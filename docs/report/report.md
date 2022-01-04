@@ -8,7 +8,7 @@ header-includes:
     - \usepackage{tikz}
     - \usetikzlibrary{chains, decorations.pathreplacing}
 toc: True
-abstract: When programming an embedded platform such as the Arduino Uno, a common obstacle to the easy development of complex, parallel programs is the lack of any simple-to-use, batteries-included, no-hidden-cost synchronous programming framework. This obstacle arises e.g. as soon as oen intends to make two LEDs blink simultaneously on a different frequency. This is caused by the single-threaded nature of the MCU and the relatively constraining Flash and RAM capacities. this project aims at providing a proof-of-concept solution to this problem through a high-level interface between the synchronous Lustre language and the Arduino hardware.
+abstract: When programming an embedded platform such as the Arduino Uno, a common obstacle to the easy development of complex, parallel programs is the lack of any simple-to-use, batteries-included, no-hidden-cost synchronous programming framework. This obstacle arises e.g. as soon as one intends to make two LEDs blink simultaneously on a different frequency. This is caused by the single-threaded nature of the MCU and the relatively constraining Flash and RAM capacities. this project aims at providing a proof-of-concept solution to this problem through a high-level interface between the synchronous Lustre language and the Arduino hardware.
 ---
 
 # Introduction

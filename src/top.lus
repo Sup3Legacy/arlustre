@@ -89,6 +89,16 @@ let
    print_n = print_int(int_of_float(distance), received, true);
 tel;
 
+node distance() returns (received: bool; dist: int)
+var cloc: bool;
+   l: int;
+   h : int;
+let
+   cloc = counter(16);
+   (received, l, h) = time_pulse(7, 9, 4, 1, cloc);
+   dist = int_of_float(float_of_int(l) *. 0.017);
+tel;
+
 node once(i: bool) returns (o: bool)
 let
    o = i and (not (false -> pre i));
@@ -141,6 +151,52 @@ let
    o = toggle_pixel(x, y, true, true) or toggle_pixel(0 -> pre x, 0 -> pre y, false, (x <> (0 -> pre x)) or (y <> (0 -> pre y)));
 tel;
 
+node fifo(step: bool; i: int) returns (o0, o1, o2, o3, o4, o5, o6, o7: int)
+let
+   o0 = 0 -> pre (if step then i else o0);
+   o1 = 0 -> pre (if step then o0 else o1);
+   o2 = 0 -> pre (if step then o1 else o2);
+   o3 = 0 -> pre (if step then o2 else o3);
+   o4 = 0 -> pre (if step then o3 else o4);
+   o5 = 0 -> pre (if step then o4 else o5);
+   o6 = 0 -> pre (if step then o5 else o6);
+   o7 = 0 -> pre (if step then o6 else o7);
+tel;
+
+-- Assume 0 <= i < 8
+node graph(step: bool; i: int) returns (o: bool) 
+var
+   m0, i_0: int;
+   m1, i_1: int;
+   m2, i_2: int;
+   m3, i_3: int;
+   m4, i_4: int;
+   m5, i_5: int;
+   m6, i_6: int;
+   m7, i_7: int;
+   l0, l1, l2, l3, l4, l5, l6, l7: bool;
+let 
+   (i_0, i_1, i_2, i_3, i_4, i_5, i_6, i_7) = fifo(step, i);
+   m0 = 0 fby i_0;
+   m1 = 0 fby i_1;
+   m2 = 0 fby i_2;
+   m3 = 0 fby i_3;
+   m4 = 0 fby i_4;
+   m5 = 0 fby i_5;
+   m6 = 0 fby i_6;
+   m7 = 0 fby i_7;
+   l0 = toggle_pixel(0, i_0, true, true) or toggle_pixel(0, m0, false, i_0 <> m0);
+   l1 = toggle_pixel(1, i_1, true, true) or toggle_pixel(1, m1, false, i_1 <> m1);
+   l2 = toggle_pixel(2, i_2, true, true) or toggle_pixel(2, m2, false, i_2 <> m2);
+   l3 = toggle_pixel(3, i_3, true, true) or toggle_pixel(3, m3, false, i_3 <> m3);
+   l4 = toggle_pixel(4, i_4, true, true) or toggle_pixel(4, m4, false, i_4 <> m4);
+   l5 = toggle_pixel(5, i_5, true, true) or toggle_pixel(5, m5, false, i_5 <> m5);
+   l6 = toggle_pixel(6, i_6, true, true) or toggle_pixel(6, m6, false, i_6 <> m6);
+   l7 = toggle_pixel(7, i_7, true, true) or toggle_pixel(7, m7, false, i_7 <> m7);
+   o = true;
+tel
+
+
 -- Hardware setup :
 -- LED on pins 2, 3, 4, 6 (configured as OUTPUT)
 -- Button on pin 5 (configured as INPUT)
@@ -156,6 +212,8 @@ var i: bool;
    period: int;
    distance: bool;
    joy: bool;
+   received: bool;
+   dist: int;
 let
    period = div(read_analog(14), 16) + 1;
    j = declare_once(5, false);
@@ -165,6 +223,7 @@ let
    m = led_control(6, on_off);
    o = led_control(4, read_pin_state(5));
    n = print_int(period, false, true);
-   distance = print_distance();
-   joy = joystick_toggle();
+   distance = true; --print_distance();
+   (received, dist) = distance();
+   joy = graph(received and not ((dist < 0) or (dist > 100)), map_int(if dist < 0 then 0 else (if dist < 100 then dist else 100), 0, 100, 0, 7)); --joystick_toggle();
 tel;
