@@ -1,9 +1,7 @@
 ---
 title: Arlustre
-author:
-- name: Constantin \textsc{Gierczak-Galle}
-  affiliation: ENS Paris
-numbersections: true
+author: Constantin \textsc{Gierczak-Galle}
+numbersections: True
 header-includes:
     - \usepackage{tikz}
     - \usetikzlibrary{chains, decorations.pathreplacing}
