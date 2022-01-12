@@ -41,6 +41,20 @@ var last_pin_state = ports{
     .portD = 0,
 };
 
+/// Interrupt nesting can (and mostly will) cause instability and crashes
+var INTERRUPT_NESTING: bool = false;
+
+/// Toggle software-controlled interrupt nesting
+/// This does not totally deactive interrupts for now,
+/// so every incoming interrupt will still consume some CPU time.
+/// However, with `INTERRUPT_NESTING` equal to `false`,
+/// the ISR will at least prematurely return is nesting is detected.
+pub fn toggleInterruptNesting(state: bool) void {
+    INTERRUPT_NESTING = state;
+}
+
+var is_ticking: [28]bool = [_]bool {false} ** 28;
+
 const State = enum {
     LOW,
     HIGH,
@@ -511,7 +525,15 @@ export fn _tim1_compb() callconv(.Interrupt) void {
     //Libz.Serial.write_usize(@intCast(u8, v));
     //Libz.Serial.write("\n\r");
 
-    @call(.{ .modifier = .never_inline }, @intToPtr(fn () void, __ISR[13]), .{});
+    if (is_ticking[12] and !INTERRUPT_NESTING) {
+        // Already ticking. Returning
+    } else {
+        is_ticking[12] = true;
+        @call(.{ .modifier = .never_inline }, @intToPtr(fn () void, __ISR[13]), .{});
+        // Disable interrupts for a moment in order to avoid interrupt nesting during the ISR postlog
+        cli();
+        is_ticking[12] = false;
+    }
 
     //SREG.write(oldSREG);
     //asm volatile ("nop" ::: "memory");

@@ -171,6 +171,8 @@ Thankfully, the microcontroller is able to schedule interrupts (when an interrup
 
 A further solution is to re-enable interrupts on a global basis when entering the `step`-bound ISR. This means that any external event (time-keeping timer, pin change interrupt, etc.) can be served directly with no additional delay. However, this leads the way to nesting interrupts that can become a nithgtmare to debug. Essentially, we trade reliability and stability for accuracy. This can be mitigated by increasing the `step` period to make sure we'll never have nesting `step` interrupts.
 
+To futher help stabilize the behaviour around interrupts and avoid looping in nested interrupts, I implemented a software-side control of nesting detection, using some custom atomic (basically force-disabling interrupts on a global scale durign the critical operation) operations.
+
 ### Hardware interrupts
 
 To allow for time-based Lustre operators, I implemented the support of `Pin Change Interrupt`s. On the Arduino Uno, there are 3 corresponding interrupt channels, each bound to a port (i.e. ~8 GPIO pins). This means that, chen such an interrupt is firing, some work is needed to determine which particular pin in the corresponding port did change. This is simply implemented using static arrays where the whole port's state is stored on each interrupt.
@@ -201,11 +203,11 @@ A non-trivial challenge emerged when trying to use the ultrasound-based range se
 
 The `libcore` uses such approach : the signal is emitted with a call to `delayMicrosedond` (ASM-programmed delay accurate function) surrounded by two `DIGITAL_MODE` calls. The echo is measured using the `pulseIn` function, which "simply" polls the pin at a high rate to detect when changes occur.
 
-This has the advantage of being accurate and "easy" to implement although technical as these routines are partly programmed in ASM for accuracy sakes. However I was not able to follow the same approcha as the echo's width was too large to reasonably fit inside the `step` ISR : I would not have been able to just poll in a loop waiting for the change. So I used pin change interrupts to make this operator asynchronous.
+This has the advantage of being accurate and "easy" to implement (although technical as these routines are partly programmed in ASM for accuracy sakes). However I was not able to follow the same approcha as the echo's width was too large (in the case of ultrasound echoes, around 1-10ms, which is already too long, but theoritically up to several dozens minutes!) to reasonably fit inside the `step` ISR : I would not have been able to just poll in a loop waiting for the change. This means that the `pulseIn` is a blocking operator, while the Lustre runtime needs a non-blocking operator. So I used pin change interrupts to make such an operator.
 
 (I would advice looking at the `time_pulse_step` function in `itnerface.zig` to fully understand the following explaination)
 
-The `time_pulse` operators takes in two pin ids : one for the emitted signal and one for the echo signal as well as a state signal (`do_step`). The sstate signal dictates whether the  operator should start a measure or wait for/read the result.
+The `time_pulse` operators takes in two pin ids : one for the emitted signal and one for the echo signal as well as a state signal (`do_step`). The sstate signal dictates, on each Lustre tick, whether the operator should start a measure or wait for/read the result.
 
 When `do_step` is on, the output signal is fired up using a delay (here, the delay is a few µs so no need to use any interrupt-based method as this is a very short amount of time) and the echo signal pin's interrupt is setup and enabled.
 
@@ -214,3 +216,21 @@ When `do_step` is off, the operators poll the static vectors containing various 
 Thanks to that implementation, we can have an accurate time-based measurement over a long period, possibly extending over multiple period of the Lustre program whithout any compromise over all the other nodes, essentially implementing an asynchronous pulse measurment.
 
 After some tests, it seems that it is in fact working, as I get very reasonable data from the range sensor through this method.
+
+# Possible extensions
+
+## Lustre-space operators
+
+A possible extension to my work would be to move some of the logic that currently sits inside the Zig runtime into Lustre, e.g. the logic behind `time_pulse`. It contains a state machine that could be implemented directly in Lustre, using some `merge` and `when` constructions.
+
+## Implement array-based operations
+
+The specificity of Heptagon versus stock Lustre is that it adds a whole lot around arrays of values. `Arlustre` *does not* support them, be it in the codegen backend or in the Zig runtime, and this for several reasons :
+
+- Time. Simply time, as I had a lot to do with the core functionnalities of `Arlustre`
+- Usecase. I did play around a bit with my testbench but did not really feel the need for array-based opetations myself (Not saying they're useless of cours, simply that my proof-of-concept examples are simple enough to not use large amount of values)
+- Memory and compute time. It seems to me that these operations are implemented using some sort of dynamic memory alocation, which is not a typical usecase of the Arduino platform, with it's very very limited memory capacity. I could totally add a small allocator (Zig does provide a very handy and practical way of defining custom memory allocators), but this would not be very idiomatic of the Arduino platform. The allcoator would also consume some compute time, which we do not have so much of :).
+
+## Improve the Zig codegen
+
+As Heptagon's Zig backend is very primitive and "copied over" from the C one, the code is, as said, not idiomatic and would benefit from a rewrite.

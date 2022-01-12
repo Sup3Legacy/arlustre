@@ -95,7 +95,7 @@ var cloc: bool;
    h : int;
 let
    cloc = counter(16);
-   (received, l, h) = time_pulse(7, 9, 4, 1, cloc);
+   (received, l, h) = time_pulse(7, 9, 10, 1, cloc);
    dist = int_of_float(float_of_int(l) *. 0.017);
 tel;
 
