@@ -232,3 +232,7 @@ The specificity of Heptagon versus stock Lustre is that it adds a whole lot arou
 ## Improve the Zig codegen
 
 As Heptagon's Zig backend is very primitive and "copied over" from the C one, the code is, as said, not idiomatic and would benefit from a rewrite.
+
+## Multiple int sizes
+
+As said earlier, it should be doable to modify `heptc` such as to accept multiple `int` types with different bitwidth, in order to better use the capacities of small target such as the ARduino.

@@ -58,4 +58,5 @@ The program's main logic is located in the `src/top.lus` Lustre file. The interf
 # Acknowledgments
 
 Thanks to [FireFox317](https://github.com/FireFox317) for their [Arduino Zig basis](https://github.com/FireFox317/avr-arduino-zig).
+
 Thanks to [Silversquirl](https://github.com/silversquirl) for their help with linker issues.

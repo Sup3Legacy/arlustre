@@ -284,4 +284,14 @@ ISR: auto interrupt disable.
 
 ![](./slides/imgs/data_race.jpg){ width=100% }
 
+# Possible extensions
+
+> - Allow for more `int` types in Heptagon.
+
+> - Handle more logic inside Lustre nodes (e.g. `time_pulse`)
+
+> - Implement array-based perations
+
+> - Improve Zig codegen in `heptc`
+
 # Demo
