@@ -103,9 +103,10 @@ obj.setTarget(std.zig.CrossTarget{
 
 ## Shortcomings
 
-> - No real Zig library for Arduino -> made my own
+> - No real Zig library for Arduino \rightarrow made my own
 
-> - Certain intrinsics (`mul`, `div_mod`) not shipped by LLVM -> custom build sequence + avr-gcc linker
+> - Certain intrinsics (`mul`, `div_mod`) not shipped by LLVM  
+    \rightarrow custom build sequence + avr-gcc linker
 
 ## Zig backend for Heptagon
 
@@ -137,7 +138,7 @@ Arduino Uno :
 
 . . . 
 
-Small target but a lot of room for small Lustre projects
+Small target but more than enough for small Arduino+Lustre projects
 
 ## Libz
 
@@ -170,7 +171,28 @@ One timer reserved for keeping track of time (as in C lib).
 
 Enable control of the hardware from Lustre. All functions sould last than ~5ms (target : Lustre program running at 100sps)
 
+## Simple I/O
+
+All simple I/O:
+
+- `DIGITAL_MODE`
+- `DIGITAL_READ`
+- `DIGITAL_WRITE`
+- `ANALOG_WRITE`
+
+handeld as is (non-blocking by nature, except `ANALOG_WRITE`*)
+
 . . .
+
+`Serial.write`: also handled in a blocking way, but not too much of an issue.
+
+. . .
+
+Possible extension: 
+
+`Serial.write` fills in a buffer that get printed outside ISRs in-between steps.
+
+## pulseIn
 
 Some operators were copied over the C library but some were blocking, e.g.
 
@@ -188,7 +210,7 @@ def pulseIn(pin, state):
 
 ---
 
-The `pulseIn` operator blocks on the signal.
+The stock `pulseIn` operator blocks on the signal.
 
 Usecase : acquire distance information from ultrasound sensor
 
@@ -197,3 +219,69 @@ Usecase : acquire distance information from ultrasound sensor
 Typical width of echo: ~$1$-$10$ms \rightarrow  too much.
 
 General usecase: theoretically up to ~$70$mn, until timer overflow.
+
+. . .
+
+**Solution:** Non-blocking measurement using `pinChangeInterrupt`.
+
+```lustre
+external fun time_pulse(outp: int; inp: int; 
+    signal_width: int; statee: int; do_step: bool) 
+    returns(b: bool; l: int; h: int)
+```
+
+# In-depth overview of interrupt handling
+
+## ISR vectors
+
+```cpp
+pub export var __ISR = [_]usize{0x0} ** 28;
+```
+
+```cpp
+comptime {
+    asm (
+        \\.section .vectors
+        \\ jmp _start
+        \\ jmp _unknown_interrupt
+        \\ jmp _unknown_interrupt
+        \\ jmp _pcint0
+        [...]
+        \\ jmp _unknown_interrupt        
+    );
+}
+```
+
+## PinChangeInterrupt
+
+```cpp
+pub var time_reference = [_]u32{0} ** 20;
+pub var last_time = [_]u32{0} ** 20;
+pub var did_interrupt_occur = [_]bool{false} ** 20;
+pub var do_interrupt = [_]bool{false} ** 20;
+pub var interrupt_state = [_]State{.ANY} ** 20;
+
+var last_pin_state = ports{
+    .portB = 0,
+    .portC = 0,
+    .portD = 0,
+};
+```
+
+## Issue
+
+`step`, i.e. the main logic, runs inside an ISR.
+
+ISR: auto interrupt disable.
+
+\rightarrow precision lack on time-sensitive measurements.
+
+. . .
+
+**Solution:** re-enable interrupts on ISR entry!
+
+. . .
+
+![](./slides/imgs/data_race.jpg){ width=100% }
+
+# Demo
