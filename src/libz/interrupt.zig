@@ -529,6 +529,7 @@ export fn _tim1_compb() callconv(.Interrupt) void {
         // Already ticking. Returning
     } else {
         is_ticking[12] = true;
+        sei();
         @call(.{ .modifier = .never_inline }, @intToPtr(fn () void, __ISR[13]), .{});
         // Disable interrupts for a moment in order to avoid interrupt nesting during the ISR postlog
         cli();

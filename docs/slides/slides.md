@@ -222,7 +222,7 @@ General usecase: theoretically up to ~$70$mn, until timer overflow.
 
 . . .
 
-**Solution:** Non-blocking measurement using `pinChangeInterrupt`.
+**Solution:** Non-blocking operator using `pinChangeInterrupt`.
 
 ```lustre
 external fun time_pulse(outp: int; inp: int; 
