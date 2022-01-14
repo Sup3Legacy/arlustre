@@ -1,7 +1,6 @@
 ---
 title: Arlustre
 author: Constantin \textsc{Gierczak-Galle} \newline Systèmes réactifs 2021/2022
-abstract : Arduino
 numbersections: True
 advanced-maths: True
 advanced-cs: True
@@ -48,6 +47,18 @@ void loop()
 . . .
 
 ... Nope!
+
+## A solution
+
+Hand-compute all delays?
+
+. . .
+
+Well, we keep the first LED on for $\frac{\pi^{2}}{6}$s, then switch off the second LED for $\Gamma(3+\varepsilon i)$s and then...
+
+. . .
+
+![](./slides/imgs/dont_do_that.jpg){ width=75% }
 
 ## Lustre
 
@@ -178,9 +189,9 @@ All simple I/O:
 - `DIGITAL_MODE`
 - `DIGITAL_READ`
 - `DIGITAL_WRITE`
-- `ANALOG_WRITE`
+- `ANALOG_READ`
 
-handeld as is (non-blocking by nature, except `ANALOG_WRITE`*)
+handeld as is (non-blocking by nature, except `ANALOG_READ`*)
 
 . . .
 
@@ -290,7 +301,7 @@ ISR: auto interrupt disable.
 
 > - Handle more logic inside Lustre nodes (e.g. `time_pulse`)
 
-> - Implement array-based perations
+> - Implement array-based operations
 
 > - Improve Zig codegen in `heptc`
 
