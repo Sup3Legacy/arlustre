@@ -40,7 +40,7 @@ The program's main logic is located in the `src/top.lus` Lustre file. The interf
 ## Prerequisites 
 
 - `ocaml` and some other `opam` libraries to compile my custom fork of `heptagon` (available as a submodule).
-- `zig` version >= `0.8` (I use the `edge` channel from `snap`, i.e. `0.10.0-dev.2+ea913846c` as of writing). Do note that Zig is still in pre-1.0 version so it tends to be not so stable now and then. If a strange behaviour is encountered, do try another (maybe more recent or more stable) release.
+- `zig` version >= `0.8` (source available [on Github](https://github.com/ziglang/zig) or via some shady repackers s.a. `snap` or `flatpak` or through the AUR). Do note that Zig is still in pre-1.0 version so it tends to be not so stable now and then. If a strange behaviour is encountered, do try another (maybe more recent or more stable) release.
 - `screen`
 - `avrdude`
 - `avr-gcc` for the linking process
@@ -48,7 +48,7 @@ The program's main logic is located in the `src/top.lus` Lustre file. The interf
   
 ## How to compile
 
-- `make` and `make install` in the `heptagon` root directory. This should install `heptc` somewhere that is accessible through the `PATH` (check this if `heptc` cannot be found).
+- `make` root directory. This should compile the modified version of `heptc`, run it on the test Lustre program and build the generated Zig code.
 - in the `src` subdirectory : 
   - `zig heptc` : runs `heptc` on `interface.epi` and `top.lus` and moves the generated `top.zig` in `./src`
   - `zig build` : Both transpiles the Lustre program and builds the resulting Zig program into an Arduino-compatible binary

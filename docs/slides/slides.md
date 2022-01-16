@@ -7,6 +7,7 @@ advanced-cs: True
 theme: metropolis
 header-includes:
     - \usepackage{setspace}
+    - \hypersetup{pdfstartview=Fit}
 ---
 
 # Motivation

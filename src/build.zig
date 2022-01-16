@@ -12,7 +12,8 @@ pub fn build(b: *std.build.Builder) !void {
     });
 
     const heptc_command = b.addSystemCommand(&.{
-        "heptc",
+        //"heptc",
+        "../heptagon/compiler/heptc.byte",
         "-s",
         "main",
         "-target",
