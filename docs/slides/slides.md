@@ -70,7 +70,7 @@ node counter(period: int) returns (c: bool);
 var y: int;
 let
    c = false -> (pre y) >= period;
-   y = 0 -> (if do_tick then 0 else (pre y) + 1);
+   y = 0 -> (if c then 0 else (pre y) + 1);
 tel;
 ```
 . . .
@@ -78,7 +78,6 @@ tel;
 ```lustre
 node led_control(pin: int; statee: bool) returns ()
 var i : int;
-   s : int;
 let
    i = change_pin_state(pin, statee);
 tel;
@@ -86,7 +85,7 @@ tel;
 
 # C? No thanks
 
-> But why would you want to use Zig instead of the all-mighty C? Zig's "safeness" comes with a great amount of limitations and those who give up their freedom for the sake of winning some temporary safety get neith#(IAç]/l5Q¦Bmçtl¿(Fxǐ **Segmentation fault (core dumped)**
+> But why would you want to use Zig instead of the almighty C? Zig's "safeness" comes with a great amount of limitations and those who give up their freedom for the sake of winning some temporary safety get neith#(IAç]/l5Q¦Bmçtl¿(Fxǐ **Segmentation fault (core dumped)**
 
 ---
 
@@ -167,13 +166,13 @@ Custom core library for Arduino Uno, in Zig. Offers:
 
 . . .
 
-All that in a human-(readable, maintenable) form (~ $2$k Zig LOC)!
+All that in a human-{readable, maintenable} form (~ $2$k Zig LOC)!
 
 ## How it works
 
 Lustre's `step` called by a timer ISR with adjustable period \rightarrow well-suited for time-critical applications, regular intervals.
 
-ISRs allocated on-the-fly: Lustre program can change itself it's behaviour.
+ISRs allocated on-the-fly: Lustre program can change itself its behaviour.
 
 Interrupts: control from software for arbitrary non-blocking operators.
 
@@ -181,7 +180,7 @@ One timer reserved for keeping track of time (as in C lib).
 
 # Operators
 
-Enable control of the hardware from Lustre. All functions sould last than ~5ms (target : Lustre program running at 100sps)
+Enable control of the hardware from Lustre. All functions should last less than ~5ms (target : Lustre program running at 100sps)
 
 ## Simple I/O
 
@@ -206,7 +205,7 @@ Possible extension:
 
 ## pulseIn
 
-Some operators were copied over the C library but some were blocking, e.g.
+Some operators were copied over from the C library but some were blocking, e.g.
 
 ```python
 # pulseIn, Python rewrite
