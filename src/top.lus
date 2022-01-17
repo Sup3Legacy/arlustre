@@ -208,6 +208,7 @@ var i: bool;
    k: bool;
    m: bool;
    n: bool;
+   p: bool;
    on_off: bool;
    period: int;
    distance: bool;
@@ -225,5 +226,6 @@ let
    n = print_int(period, false, true);
    distance = true; --print_distance();
    (received, dist) = distance();
+   p = print_int(dist, received, true);
    joy = graph(received and not ((dist < 0) or (dist > 100)), map_int(if dist < 0 then 0 else (if dist < 100 then dist else 100), 0, 100, 0, 7)); --joystick_toggle();
 tel;
