@@ -4,6 +4,7 @@ author: Constantin \textsc{Gierczak-Galle} \newline Systèmes réactifs 2021/202
 numbersections: True
 advanced-maths: True
 advanced-cs: True
+aspectratio: 169
 theme: metropolis
 header-includes:
     - \usepackage{setspace}
@@ -59,7 +60,7 @@ Well, we keep the first LED on for $\frac{\pi^{2}}{6}$s, then switch off the sec
 
 . . .
 
-![](./slides/imgs/dont_do_that.jpg){ width=75% }
+![](./slides/imgs/dont_do_that.jpg){ width=60% align=center }
 
 ## Lustre
 
@@ -89,7 +90,7 @@ tel;
 
 ---
 
-![](./slides/imgs/segfault.png){ width=100% }
+![](./slides/imgs/segfault.png){ width=90% align=center }
 
 ## (Embedded) Zig for the win
 
@@ -109,8 +110,6 @@ obj.setTarget(std.zig.CrossTarget{
 > - Nice build system: "one tool to build them all"™️
 
 > - Everything OS/platform-independant in the std freely usable
-
-> - Nice auto-generated docs
 
 ## Shortcomings
 
@@ -293,7 +292,7 @@ ISR: auto interrupt disable.
 
 . . .
 
-![](./slides/imgs/data_race.jpg){ width=100% }
+![](./slides/imgs/data_race.jpg){ width=90% }
 
 # Possible extensions
 
