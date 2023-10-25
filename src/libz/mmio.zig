@@ -1,16 +1,15 @@
 pub fn MMIO(comptime addr: usize, comptime IntType: type, comptime ReprType: type) type {
     return struct {
         pub fn ptr() *volatile IntType {
-            return @intToPtr(*volatile IntType, addr);
+            return @ptrFromInt(addr);
         }
         pub fn read() ReprType {
             const intVal = ptr().*;
-            return @bitCast(ReprType, intVal);
+            return @bitCast(intVal);
         }
         pub fn write(val: ReprType) void {
-            const intVal = @bitCast(IntType, val);
+            const intVal: IntType = @bitCast(val);
             ptr().* = intVal;
         }
     };
 }
-

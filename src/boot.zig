@@ -3,19 +3,22 @@ pub const std = @import("std");
 pub const Serial = Libz.Serial;
 
 /// Entry point of the program
-/// It initializes the memory and ISRs and then jumps into the 
+/// It initializes the memory and ISRs and then jumps into the
 // bootstrap main function
 pub export fn _start() callconv(.Naked) noreturn {
-    @call(.{ .modifier = .never_inline }, copyDataToRAM, .{});
-    @call(.{ .modifier = .never_inline }, clearBSS, .{});
+    @call(.always_inline, copyDataToRAM, .{});
+    @call(.always_inline, clearBSS, .{});
+    //copyDataToRAM();
+    //clearBSS();
     //@call(.{.modifier = .never_inline }, updateISR, .{});
 
     // Set ISR magic number
     // This enables the use of the second-stage interrupt vector table
     Libz.Interrupts.__ISR_LOADED = 0x69;
 
-    @call(.{ .modifier = .never_inline }, @import("start.zig").bootstrap, .{});
-    
+    //@call(.never_inline, @import("start.zig").bootstrap, .{});
+    @import("start.zig").bootstrap();
+
     while (true) {}
 }
 

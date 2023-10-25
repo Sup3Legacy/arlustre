@@ -46,7 +46,7 @@ pub fn initTimer1(comptime period: u64) void {
 
     // Disable A overflow interrupt
     TCNT1.write(0);
-    ICR1.write(@intCast(u16, pwmPeriod));
+    ICR1.write(@intCast(pwmPeriod));
     // Enable B overflow interrupt
     TCCR1B.write((1 << 4) | clockSelectBits);
 }
@@ -96,7 +96,7 @@ const MILLIS_INC: u32 = (MICROSECONDS_PER_TIMER0_OVERFLOW / 1000);
 // the fractional number of milliseconds per timer0 overflow. we shift right
 // by three to fit these numbers into a byte. (for the clock speeds we care
 // about - 8 and 16 MHz - this doesn't lose precision.)
-const FRACT_INC: u8 = @intCast(u8, (MICROSECONDS_PER_TIMER0_OVERFLOW % 1000) >> 3);
+const FRACT_INC: u8 = @intCast((MICROSECONDS_PER_TIMER0_OVERFLOW % 1000) >> 3);
 const FRACT_MAX: u8 = (1000 >> 3);
 
 pub var timer0_overflow_count: u32 = 0;

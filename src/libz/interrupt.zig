@@ -53,8 +53,8 @@ pub fn toggleInterruptNesting(state: bool) void {
     INTERRUPT_NESTING = state;
 }
 
-/// 
-var is_ticking: [28]bool = [_]bool {false} ** 28;
+///
+var is_ticking: [28]bool = [_]bool{false} ** 28;
 
 const State = enum {
     LOW,
@@ -64,9 +64,15 @@ const State = enum {
 
 pub fn stateOfInt(i: isize) State {
     switch (i) {
-        0 => {return .LOW;},
-        1 => {return .HIGH;},
-        else => {return .ANY;},
+        0 => {
+            return .LOW;
+        },
+        1 => {
+            return .HIGH;
+        },
+        else => {
+            return .ANY;
+        },
     }
 }
 
@@ -152,7 +158,6 @@ fn handlePinInterrupt(pin_event: PinInterrupt) void {
             togglePinInterrupt(i, do_interrupt[i]);
         },
     }
-    
 }
 
 const PinInterruptType = enum {
@@ -183,7 +188,7 @@ fn findSetBit(arg: u8) PinInterruptError!u8 {
     var res: ?u8 = null;
     var i: u8 = 0;
     while (i < 8) : (i += 1) {
-        if (arg & (@as(u8, 1) << @intCast(u3, i)) != 0) {
+        if (arg & (@as(u8, 1) << @intCast(i)) != 0) {
             if (res != null) {
                 return PinInterruptError.MultipleChanges;
             } else {
@@ -202,7 +207,7 @@ fn detectInterrupt(port: Port) PinInterruptError!PinInterrupt {
             var masked_status = (new_status ^ last_pin_state.portB) & int_mask;
             last_pin_state.portB = new_status;
             var index = findSetBit(masked_status) catch |err| return err;
-            if (new_status & (@as(u8, 1) << @intCast(u3, index)) != 0) {
+            if (new_status & (@as(u8, 1) << @intCast(index)) != 0) {
                 return PinInterrupt{ .Rising = index + 8 };
             } else {
                 return PinInterrupt{ .Falling = index + 8 };
@@ -214,7 +219,7 @@ fn detectInterrupt(port: Port) PinInterruptError!PinInterrupt {
             var masked_status = (new_status ^ last_pin_state.portC) & int_mask;
             last_pin_state.portC = new_status;
             var index = findSetBit(masked_status) catch |err| return err;
-            if (new_status & (@as(u8, 1) << @intCast(u3, index)) != 0) {
+            if (new_status & (@as(u8, 1) << @intCast(index)) != 0) {
                 return PinInterrupt{ .Rising = index + 14 };
             } else {
                 return PinInterrupt{ .Falling = index + 14 };
@@ -226,7 +231,7 @@ fn detectInterrupt(port: Port) PinInterruptError!PinInterrupt {
             var masked_status = (new_status ^ last_pin_state.portD) & int_mask;
             last_pin_state.portD = new_status;
             var index = findSetBit(masked_status) catch |err| return err;
-            if (new_status & (@as(u8, 1) << @intCast(u3, index)) != 0) {
+            if (new_status & (@as(u8, 1) << @intCast(index)) != 0) {
                 return PinInterrupt{ .Rising = index + 0 };
             } else {
                 return PinInterrupt{ .Falling = index + 0 };
@@ -242,7 +247,6 @@ pub fn togglePinInterrupt(pin_id: u8, enabled: bool) void {
         0...7 => {
             if (enabled) {
                 PCMSK2.write(PCMSK2.read() | GPIO.itb(pin_id));
-                
             } else {
                 PCMSK2.write(PCMSK2.read() & ~GPIO.itb(pin_id));
             }
@@ -356,7 +360,7 @@ pub export fn _handle_ir() void {
         ::: "r30", "r31");
 }
 
-/// Hacky variable to check whether the .data segment has already been loaded into RAM. 
+/// Hacky variable to check whether the .data segment has already been loaded into RAM.
 /// If not, the ISR no. 0 must jump directly to _start instead of reading garbage in `__ISR`
 /// This is because `__ISR` is located in the .Data segment. So any interrupt happening before
 /// this segment gets loaded into RAM would try to jump to whatever offset was at this place
@@ -370,7 +374,7 @@ pub export var __ISR = [_]usize{0x068} ** 28;
 pub fn initISR() void {
     var index: u8 = 0;
     while (index < 28) : (index += 1) {
-        __ISR[index] = @ptrToInt(_unknown_interrupt);
+        __ISR[index] = @intFromPtr(_unknown_interrupt);
     }
 }
 
@@ -531,7 +535,8 @@ export fn _tim1_compb() callconv(.Interrupt) void {
     } else {
         is_ticking[12] = true;
         sei();
-        @call(.{ .modifier = .never_inline }, @intToPtr(fn () void, __ISR[13]), .{});
+        const f: fn () void = @ptrFromInt(__ISR[13]);
+        @call(.{ .modifier = .never_inline }, f, .{});
         // Disable interrupts for a moment in order to avoid interrupt nesting during the ISR postlog
         cli();
         is_ticking[12] = false;

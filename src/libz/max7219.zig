@@ -28,7 +28,7 @@ pub fn SPISendByte(data: u8) void {
         GPIO.DIGITAL_WRITE(CLOCK_pin, .LOW) catch {};
         asm volatile ("nop" ::: "memory");
         var data_to_write: GPIO.VALUE = .LOW;
-        if (data & (@as(u8, 1) << @intCast(u3, i - 1)) != 0) {
+        if (data & (@as(u8, 1) << @intCast(i - 1)) != 0) {
             data_to_write = .HIGH;
         }
         GPIO.DIGITAL_WRITE(DIN_pin, data_to_write) catch {};
@@ -61,19 +61,19 @@ pub fn init() void {
     GPIO.DIGITAL_MODE(DIN_pin, .OUTPUT) catch {};
     GPIO.DIGITAL_MODE(CLOCK_pin, .OUTPUT) catch {};
     GPIO.DIGITAL_MODE(LOAD_pin, .OUTPUT) catch {};
-    
-    fillRegister(@enumToInt(Instr.Shutdown), 0x01);
-    fillRegister(@enumToInt(Instr.ScanLimit), 0x07);
-    fillRegister(@enumToInt(Instr.DecodeMode), 0x00);
 
-    fillRegister(@enumToInt(Instr.DisplayTest), 0x00);
+    fillRegister(@intFromEnum(Instr.Shutdown), 0x01);
+    fillRegister(@intFromEnum(Instr.ScanLimit), 0x07);
+    fillRegister(@intFromEnum(Instr.DecodeMode), 0x00);
+
+    fillRegister(@intFromEnum(Instr.DisplayTest), 0x00);
 
     var i: u8 = 1;
     while (i < 9) : (i += 1) {
         fillRegister(i, 0x0);
     }
 
-    fillRegister(@enumToInt(Instr.Intensity), 0x08);
+    fillRegister(@intFromEnum(Instr.Intensity), 0x08);
 }
 
 pub fn toggle_pixel(x: u8, y: u8, state: bool) void {
@@ -82,8 +82,8 @@ pub fn toggle_pixel(x: u8, y: u8, state: bool) void {
     }
 
     if (state) {
-        LED_buffer[x] |= (@as(u8, 1) << @intCast(u3, y));
+        LED_buffer[x] |= (@as(u8, 1) << @intCast(y));
     } else {
-        LED_buffer[x] &= ~(@as(u8, 1) << @intCast(u3, y));
+        LED_buffer[x] &= ~(@as(u8, 1) << @intCast(y));
     }
 }

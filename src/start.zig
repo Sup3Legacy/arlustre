@@ -37,9 +37,9 @@ pub fn bootstrap() noreturn {
 
     // Print the address of the reset itnerrupt for debug
     utilities.delay(100_000);
-    Serial.write_usize(@intCast(u8, interrupt.__ISR[0] >> 8));
+    Serial.write_usize(@intCast(interrupt.__ISR[0] >> 8));
     utilities.delay(100_000);
-    Serial.write_usize(@intCast(u8, interrupt.__ISR[0]));
+    Serial.write_usize(@intCast(interrupt.__ISR[0]));
 
     // Somehow screen needs a CRLF-type line ending
     utilities.delay(100_000);
@@ -49,15 +49,15 @@ pub fn bootstrap() noreturn {
 
     // Enable global interrupts
     interrupt.sei();
-    
+
     // Attach the step function to the timer1 interrupt
-    interrupt.attachInterrupt(13, @ptrToInt(@import("main.zig").step));
+    interrupt.attachInterrupt(13, @intFromPtr(@import("main.zig").step));
     // Initializes the timer1 interrupt (B overflow)
     timer.initTimer1(10_000);
 
     while (true) {
         Libz.Utilities.no_op();
-        
+
         // Housekeeping stuff of needed
     }
 }

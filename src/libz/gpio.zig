@@ -45,13 +45,13 @@ pub fn itb(id: u8) u8 {
 
     switch (id) {
         0...7 => {
-            return unite << @intCast(u3, id);
+            return unite << @intCast(id);
         },
         8...13 => {
-            return unite << @intCast(u3, id - 8);
+            return unite << @intCast(id - 8);
         },
         14...19 => {
-            return unite << @intCast(u3, id - 14);
+            return unite << @intCast(id - 14);
         },
         else => {
             return 0;
@@ -143,27 +143,27 @@ pub fn DIGITAL_WRITE(pin_id: u8, value: VALUE) GPIO_ERROR!void {
         0...7 => {
             var actual = PORTD.read();
             if (value == .HIGH) {
-                actual |= (@as(u8, 1) << @intCast(u3, pin_id));
+                actual |= (@as(u8, 1) << @intCast(pin_id));
             } else {
-                actual &= ~(@as(u8, 1) << @intCast(u3, pin_id));
+                actual &= ~(@as(u8, 1) << @intCast(pin_id));
             }
             PORTD.write(actual);
         },
         8...13 => {
             var actual = PORTB.read();
             if (value == .HIGH) {
-                actual |= (@as(u8, 1) << @intCast(u3, pin_id - 8));
+                actual |= (@as(u8, 1) << @intCast(pin_id - 8));
             } else {
-                actual &= ~(@as(u8, 1) << @intCast(u3, pin_id - 8));
+                actual &= ~(@as(u8, 1) << @intCast(pin_id - 8));
             }
             PORTB.write(actual);
         },
         14...19 => {
             var actual = PORTC.read();
             if (value == .HIGH) {
-                actual |= (@as(u8, 1) << @intCast(u3, pin_id - 14));
+                actual |= (@as(u8, 1) << @intCast(pin_id - 14));
             } else {
-                actual &= ~(@as(u8, 1) << @intCast(u3, pin_id - 14));
+                actual &= ~(@as(u8, 1) << @intCast(pin_id - 14));
             }
             PORTC.write(actual);
         },

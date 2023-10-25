@@ -139,38 +139,38 @@ fn match_number(n: u4) u8 {
 }
 
 pub fn write_usize(nb: u8) void {
-    write_ch(match_number(@intCast(u4, nb >> 4)));
+    write_ch(match_number(@intCast(nb >> 4)));
     flush();
-    write_ch(match_number(@intCast(u4, nb)));
+    write_ch(match_number(@intCast(nb)));
 }
 
 pub fn write_u16(nb: u32) void {
-    write_ch(match_number(@intCast(u4, nb >> 12)));
+    write_ch(match_number(@intCast(nb >> 12)));
     flush();
-    write_ch(match_number(@intCast(u4, nb >> 8)));
+    write_ch(match_number(@intCast(nb >> 8)));
     flush();
-    write_ch(match_number(@intCast(u4, nb >> 4)));
+    write_ch(match_number(@intCast(nb >> 4)));
     flush();
-    write_ch(match_number(@intCast(u4, nb)));
+    write_ch(match_number(@intCast(nb)));
     flush();
 }
 
 pub fn write_u32(nb: u32) void {
-    write_ch(match_number(@intCast(u4, nb / 28)));
+    write_ch(match_number(@intCast(nb / 28)));
     flush();
-    write_ch(match_number(@intCast(u4, nb >> 24)));
+    write_ch(match_number(@intCast(nb >> 24)));
     flush();
-    write_ch(match_number(@intCast(u4, nb >> 20)));
+    write_ch(match_number(@intCast(nb >> 20)));
     flush();
-    write_ch(match_number(@intCast(u4, nb >> 16)));
+    write_ch(match_number(@intCast(nb >> 16)));
     flush();
-    write_ch(match_number(@intCast(u4, nb >> 12)));
+    write_ch(match_number(@intCast(nb >> 12)));
     flush();
-    write_ch(match_number(@intCast(u4, nb >> 8)));
+    write_ch(match_number(@intCast(nb >> 8)));
     flush();
-    write_ch(match_number(@intCast(u4, nb >> 4)));
+    write_ch(match_number(@intCast(nb >> 4)));
     flush();
-    write_ch(match_number(@intCast(u4, nb)));
+    write_ch(match_number(@intCast(nb)));
     flush();
 }
 
