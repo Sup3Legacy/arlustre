@@ -2,14 +2,16 @@ const std = @import("std");
 
 // Thanks to https://github.com/silversquirl for giving my part of this build script
 // to use avr-gcc
-pub fn build(b: *std.build.Builder) !void {
-    const obj = b.addObject("arlustre", "boot.zig");
-    obj.setTarget(std.zig.CrossTarget{
+pub fn build(b: *std.Build) !void {
+    const optimize = b.standardOptimizeOption(.{});
+    const target = std.zig.CrossTarget{
         .cpu_arch = .avr,
         .cpu_model = .{ .explicit = &std.Target.avr.cpu.atmega328p },
         .os_tag = .freestanding,
         .abi = .none,
-    });
+    };
+
+    const obj = b.addObject(.{ .name = "arlustre", .root_source_file = .{ .path = "boot.zig" }, .optimize = optimize, .target = target });
 
     const heptc_command = b.addSystemCommand(&.{
         //"heptc",
@@ -28,12 +30,11 @@ pub fn build(b: *std.build.Builder) !void {
     top_move.step.dependOn(&heptc_command.step);
 
     obj.bundle_compiler_rt = false;
-    obj.setBuildMode(.ReleaseSmall);
     obj.strip = true;
-    obj.emit_docs = .emit;
     obj.single_threaded = true;
+    obj.max_memory = 2_000;
     obj.step.dependOn(&top_move.step);
-    var link = AvrLinkStep.init(b, "arlustre", &obj.output_path_source);
+    var link = AvrLinkStep.init(b, "arlustre", &obj.out_filename);
     link.step.dependOn(&obj.step);
     link.linker_script = "linker.ld";
     _ = link.installRaw("arlustre", .{});
@@ -91,8 +92,8 @@ pub fn build(b: *std.build.Builder) !void {
 const AvrLinkStep = struct {
     step: std.build.Step,
     builder: *std.build.Builder,
-    object: *const std.build.GeneratedFile,
-    output_name: []const u8,
+    object: []const u8,
+    output_name: *[]const u8,
     output: std.build.GeneratedFile,
     dummy_artifact: *std.build.LibExeObjStep,
 
@@ -101,7 +102,7 @@ const AvrLinkStep = struct {
     pub fn init(
         b: *std.build.Builder,
         name: []const u8,
-        object: *const std.build.GeneratedFile,
+        object: *[]const u8,
     ) *AvrLinkStep {
         const self = b.allocator.create(AvrLinkStep) catch unreachable;
 
@@ -139,7 +140,7 @@ const AvrLinkStep = struct {
             try args.appendSlice(&.{ "-T", script_path });
         }
 
-        try args.append(self.object.getPath());
+        try args.append(self.object);
         _ = try self.builder.execFromStep(args.toOwnedSlice(), &self.step);
 
         self.output.path = out_path;
