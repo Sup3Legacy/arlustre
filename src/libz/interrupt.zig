@@ -379,12 +379,12 @@ pub fn initISR() void {
 }
 
 /// Fallback ISR
-export fn _unknown_interrupt() callconv(.Naked) noreturn {
+export fn _unknown_interrupt() callconv(.C) noreturn {
     while (true) {}
 }
 
 /// Ext int 0
-export fn _int0() callconv(.Naked) void {
+export fn _int0() callconv(.C) void {
     push();
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
 
@@ -396,7 +396,7 @@ export fn _int0() callconv(.Naked) void {
 }
 
 /// Ext int 1
-export fn _int1() callconv(.Naked) void {
+export fn _int1() callconv(.C) void {
     push();
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     var oldSREG: u8 = SREG.read();
@@ -445,7 +445,7 @@ export fn _pcint2() callconv(.Interrupt) void {
 }
 
 /// Watchdog timeout
-export fn _wdt() callconv(.Naked) void {
+export fn _wdt() callconv(.C) void {
     push();
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     var oldSREG: u8 = SREG.read();
@@ -458,7 +458,7 @@ export fn _wdt() callconv(.Naked) void {
 
 // 7 0x000C WDT Watchdog Time-out Interrupttime_reference
 // 8 0x000E TIMER2 COMPA Timer/Counter2 Compare Match A
-export fn _tim2_compa() callconv(.Naked) void {
+export fn _tim2_compa() callconv(.C) void {
     push();
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     var oldSREG: u8 = SREG.read();
@@ -469,7 +469,7 @@ export fn _tim2_compa() callconv(.Naked) void {
     asm volatile ("reti");
 }
 // 9 0x0010 TIMER2 COMPB Timer/Counter2 Compare Match B
-export fn _tim2_compb() callconv(.Naked) void {
+export fn _tim2_compb() callconv(.C) void {
     push();
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     var oldSREG: u8 = SREG.read();
@@ -480,7 +480,7 @@ export fn _tim2_compb() callconv(.Naked) void {
     asm volatile ("reti");
 }
 // 10 0x0012 TIMER2 OVF Timer/Counter2 Overflow
-export fn _tim2_ovf() callconv(.Naked) void {
+export fn _tim2_ovf() callconv(.C) void {
     push();
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     var oldSREG: u8 = SREG.read();
@@ -491,7 +491,7 @@ export fn _tim2_ovf() callconv(.Naked) void {
     asm volatile ("reti");
 }
 // 11 0x0014 TIMER1 CAPT Timer/Counter1 Capture Event
-export fn _tim1_capt() callconv(.Naked) void {
+export fn _tim1_capt() callconv(.C) void {
     push();
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     var oldSREG: u8 = SREG.read();
@@ -502,7 +502,7 @@ export fn _tim1_capt() callconv(.Naked) void {
     asm volatile ("reti");
 }
 // 12 0x0016 TIMER1 COMPA Timer/Counter1 Compare Match A
-export fn _tim1_compa() callconv(.Naked) void {
+export fn _tim1_compa() callconv(.C) void {
     push();
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     var oldSREG: u8 = SREG.read();
@@ -535,8 +535,8 @@ export fn _tim1_compb() callconv(.Interrupt) void {
     } else {
         is_ticking[12] = true;
         sei();
-        const f: fn () void = @ptrFromInt(__ISR[13]);
-        @call(.{ .modifier = .never_inline }, f, .{});
+        const f: *const fn () void = @ptrFromInt(__ISR[13]);
+        @call(.never_inline, f, .{});
         // Disable interrupts for a moment in order to avoid interrupt nesting during the ISR postlog
         cli();
         is_ticking[12] = false;
@@ -549,7 +549,7 @@ export fn _tim1_compb() callconv(.Interrupt) void {
     //asm volatile ("reti");
 }
 // 14 0x001A TIMER1 OVF Timer/Counter1 Overflow
-export fn _tim1_ovf() callconv(.Naked) void {
+export fn _tim1_ovf() callconv(.C) void {
     push();
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     var oldSREG: u8 = SREG.read();
@@ -560,7 +560,7 @@ export fn _tim1_ovf() callconv(.Naked) void {
     asm volatile ("reti");
 }
 // 15 0x001C TIMER0 COMPA Timer/Counter0 Compare Match A
-export fn _tim0_compa() callconv(.Naked) void {
+export fn _tim0_compa() callconv(.C) void {
     push();
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     var oldSREG: u8 = SREG.read();
@@ -571,7 +571,7 @@ export fn _tim0_compa() callconv(.Naked) void {
     asm volatile ("reti");
 }
 // 16 0x001E TIMER0 COMPB Timer/Counter0 Compare Match B
-export fn _tim0_compb() callconv(.Naked) void {
+export fn _tim0_compb() callconv(.C) void {
     push();
     const SREG = Libz.MmIO.MMIO(0x5F, u8, u8);
     var oldSREG: u8 = SREG.read();
@@ -621,7 +621,7 @@ fn togglePinChangeIntPort(port: Port, state: bool) void {
     }
 }
 
-pub fn pop() void {
+pub inline fn pop() void {
     asm volatile (
         \\ pop r31
         \\ pop r30
@@ -658,7 +658,7 @@ pub fn pop() void {
     );
 }
 
-pub fn push() void {
+pub inline fn push() void {
     asm volatile (
         \\ push r0
         \\ push r1

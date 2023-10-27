@@ -2,7 +2,7 @@ const std = @import("std");
 const Builder = std.build.Builder;
 
 pub fn build(b: *Builder) !void {
-    const optimize = b.standardOptimizeOption(.{});
+    const optimize = .ReleaseSmall;
     const target = std.zig.CrossTarget{
         .cpu_arch = .avr,
         .cpu_model = .{ .explicit = &std.Target.avr.cpu.atmega328p },
@@ -16,6 +16,8 @@ pub fn build(b: *Builder) !void {
     exe.strip = true;
     exe.single_threaded = true;
     exe.max_memory = 2_000;
+    exe.stack_protector = false;
+    exe.disable_stack_probing = true;
 
     exe.setLinkerScriptPath(std.build.FileSource{ .path = "linker.ld" });
     b.installArtifact(exe);

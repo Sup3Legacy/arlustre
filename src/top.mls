@@ -1,0 +1,398 @@
+open Interface
+node declare_once(port : int; direction : bool) returns (out : int)
+var v : bool;
+let
+  out = Interface.declare_io(port, direction, v);
+  v = true fby false
+tel
+
+node count_true returns (y : int)
+var v : int;
+let
+  y = (v + 1);
+  v = 0 fby y
+tel
+
+node counter(period : int) returns (c : bool)
+var do_tick : bool; y : int; v : bool; v_1 : int; v_2 : bool; v_3 : bool;
+    v_4 : int; v_5 : int; v_6 : int;
+let
+  c = do_tick;
+  y = if v_3 then 0 else v_6;
+  v_6 = if do_tick then 0 else v_5;
+  v_5 = (v_4 + 1);
+  v_4 = pre y;
+  v_3 = true fby false;
+  do_tick = if v then false else v_2;
+  v_2 = (v_1 >= period);
+  v_1 = pre y;
+  v = true fby false
+tel
+
+node led(period : int; pin : int; toggle : bool) returns (out : bool)
+var s : int; change : bool; statee : bool; i : int; v : bool; v_7 : bool;
+    v_8 : bool; v_9 : bool; v_10 : bool; v_11 : bool; v_12 : bool;
+    v_13 : int; v_14 : int; v_15 : bool; v_16 : bool; v_17 : bool;
+let
+  out = if change then v_16 else v_17;
+  v_17 = false fby out;
+  v_16 = not(v_15);
+  v_15 = false fby out;
+  i = if v_12 then s else v_14;
+  v_14 = if change then v_13 else 0;
+  v_13 = Interface.change_pin_state(pin, statee);
+  v_12 = true fby false;
+  statee = if v then true else v_11;
+  v_11 = if toggle then v_10 else false;
+  v_10 = if change then v_8 else v_9;
+  v_9 = pre statee;
+  v_8 = not(v_7);
+  v_7 = pre statee;
+  v = true fby false;
+  change = counter(period);
+  s = declare_once(pin, true)
+tel
+
+node xor_node(i_1 : bool; i_2 : bool) returns (o : bool)
+var v : bool; v_18 : bool; v_19 : bool; v_20 : bool;
+let
+  o = (v_18 or v_20);
+  v_20 = (i_2 & v_19);
+  v_19 = not(i_1);
+  v_18 = (i_1 & v);
+  v = not(i_2)
+tel
+
+node toggle_node(inp : bool) returns (outp : bool)
+var last_val : bool; v : bool; v_21 : bool; v_22 : bool; v_23 : bool;
+    v_24 : bool; v_25 : bool; v_26 : bool;
+let
+  outp = if v_22 then false else v_26;
+  v_26 = xor_node(v_23, v_25);
+  v_25 = (inp & v_24);
+  v_24 = not(last_val);
+  v_23 = pre outp;
+  v_22 = true fby false;
+  last_val = if v then false else v_21;
+  v_21 = pre inp;
+  v = true fby false
+tel
+
+node led_control(pin : int; statee : bool) returns (out : bool)
+var s : int; i : int;
+let
+  out = true;
+  i = Interface.change_pin_state(pin, statee);
+  s = declare_once(pin, true)
+tel
+
+node led_control_print(pin : int; statee : bool) returns (out : bool)
+var d : bool; p : bool; s : int; i : int; v : bool; v_27 : int; v_28 : bool;
+    v_29 : bool; v_30 : bool; v_31 : bool;
+let
+  out = true;
+  p = Interface.print_int(v_27, v_31, true);
+  v_31 = xor_node(statee, v_30);
+  v_30 = if v_28 then false else v_29;
+  v_29 = pre statee;
+  v_28 = true fby false;
+  v_27 = if statee then 105 else 66;
+  d = if v then true else false;
+  v = true fby false;
+  i = Interface.change_pin_state(pin, statee);
+  s = declare_once(pin, true)
+tel
+
+node print_distance returns (o : bool)
+var distance : float; print_n : bool; h : int; l : int; received : bool;
+    cloc : bool; v : float; v_32 : float; v_33 : float; v_34 : float;
+    v_35 : int;
+let
+  print_n = Interface.print_int(v_35, received, true);
+  v_35 = Interface.int_of_float(distance);
+  distance = (v_34 *. 0.017000);
+  v_34 = (v +. v_33);
+  v_33 = (v_32 *. 256.000000);
+  v_32 = Interface.float_of_int(h);
+  v = Interface.float_of_int(l);
+  o = received;
+  (received, l, h) = Interface.time_pulse(7, 9, 4, 1, cloc);
+  cloc = counter(16)
+tel
+
+node distance returns (received : bool; dist : int)
+var h : int; l : int; cloc : bool; v : float; v_36 : float;
+let
+  dist = Interface.int_of_float(v_36);
+  v_36 = (v *. 0.017000);
+  v = Interface.float_of_int(l);
+  (received, l, h) = Interface.time_pulse(7, 9, 10, 1, cloc);
+  cloc = counter(16)
+tel
+
+node once(i : bool) returns (o : bool)
+var v : bool; v_37 : bool; v_38 : bool; v_39 : bool;
+let
+  o = (i & v_39);
+  v_39 = not(v_38);
+  v_38 = if v then false else v_37;
+  v_37 = pre i;
+  v = true fby false
+tel
+
+node joystick returns (o : bool)
+var y : int; x : int; v : int; v_40 : int; v_41 : int; v_42 : bool;
+    v_43 : bool; v_44 : int; v_45 : int; v_46 : bool; v_47 : int; v_48 : int;
+    v_49 : bool; v_50 : int; v_51 : int; v_52 : bool; v_53 : bool;
+    v_54 : bool; v_55 : int; v_56 : int; v_57 : bool; v_58 : bool;
+    v_59 : bool; v_60 : bool;
+let
+  o = (v_42 or v_60);
+  v_60 = Interface.toggle_pixel(v_45, v_48, false, v_59);
+  v_59 = (v_53 or v_58);
+  v_58 = not(v_57);
+  v_57 = (y = v_56);
+  v_56 = if v_54 then 0 else v_55;
+  v_55 = pre y;
+  v_54 = true fby false;
+  v_53 = not(v_52);
+  v_52 = (x = v_51);
+  v_51 = if v_49 then 0 else v_50;
+  v_50 = pre x;
+  v_49 = true fby false;
+  v_48 = if v_46 then 0 else v_47;
+  v_47 = pre y;
+  v_46 = true fby false;
+  v_45 = if v_43 then 0 else v_44;
+  v_44 = pre x;
+  v_43 = true fby false;
+  v_42 = Interface.toggle_pixel(x, y, true, true);
+  x = Interface.map_int(v_41, 0, 1000, 0, 7);
+  v_41 = Interface.read_analog(16);
+  y = Interface.map_int(v_40, 0, 1000, 0, 7);
+  v_40 = (1023 - v);
+  v = Interface.read_analog(15)
+tel
+
+node joystick_toggle returns (o : bool)
+var my : int; mx : int; leftright : int; updown : int; y : int; x : int;
+    v : int; v_61 : bool; v_62 : bool; v_63 : bool; v_64 : int; v_65 : int;
+    v_66 : bool; v_67 : int; v_68 : bool; v_69 : bool; v_70 : bool;
+    v_71 : int; v_72 : int; v_73 : bool; v_74 : int; v_75 : int; v_76 : bool;
+    v_77 : bool; v_78 : bool; v_79 : int; v_80 : int; v_81 : bool;
+    v_82 : int; v_83 : bool; v_84 : bool; v_85 : bool; v_86 : int;
+    v_87 : int; v_88 : bool; v_89 : int; v_90 : int; v_91 : bool; v_92 : int;
+    v_93 : int; v_94 : bool; v_95 : int; v_96 : int; v_97 : bool;
+    v_98 : bool; v_99 : int; v_100 : int; v_101 : bool; v_102 : int;
+    v_103 : int; v_104 : bool; v_105 : int; v_106 : int; v_107 : bool;
+    v_108 : bool; v_109 : bool; v_110 : int; v_111 : int; v_112 : bool;
+    v_113 : bool; v_114 : bool; v_115 : bool;
+let
+  o = (v_97 or v_115);
+  v_115 = Interface.toggle_pixel(v_100, v_103, false, v_114);
+  v_114 = (v_108 or v_113);
+  v_113 = not(v_112);
+  v_112 = (y = v_111);
+  v_111 = if v_109 then 0 else v_110;
+  v_110 = pre y;
+  v_109 = true fby false;
+  v_108 = not(v_107);
+  v_107 = (x = v_106);
+  v_106 = if v_104 then 0 else v_105;
+  v_105 = pre x;
+  v_104 = true fby false;
+  v_103 = if v_101 then 0 else v_102;
+  v_102 = pre y;
+  v_101 = true fby false;
+  v_100 = if v_98 then 0 else v_99;
+  v_99 = pre x;
+  v_98 = true fby false;
+  v_97 = Interface.toggle_pixel(x, y, true, true);
+  y = (v_96 + leftright);
+  v_96 = if v_94 then 4 else v_95;
+  v_95 = pre y;
+  v_94 = true fby false;
+  x = (v_93 + updown);
+  v_93 = if v_91 then 4 else v_92;
+  v_92 = pre x;
+  v_91 = true fby false;
+  leftright = if v_77 then v_82 else v_90;
+  v_90 = if v_84 then v_89 else 0;
+  v_89 = if v_88 then 0 else ~-(1);
+  v_88 = (v_87 = 0);
+  v_87 = if v_85 then 4 else v_86;
+  v_86 = pre y;
+  v_85 = true fby false;
+  v_84 = once(v_83);
+  v_83 = (my <= 200);
+  v_82 = if v_81 then 0 else 1;
+  v_81 = (v_80 = 7);
+  v_80 = if v_78 then 4 else v_79;
+  v_79 = pre y;
+  v_78 = true fby false;
+  v_77 = once(v_76);
+  v_76 = (my >= 800);
+  updown = if v_62 then v_67 else v_75;
+  v_75 = if v_69 then v_74 else 0;
+  v_74 = if v_73 then 0 else ~-(1);
+  v_73 = (v_72 = 0);
+  v_72 = if v_70 then 4 else v_71;
+  v_71 = pre x;
+  v_70 = true fby false;
+  v_69 = once(v_68);
+  v_68 = (mx <= 200);
+  v_67 = if v_66 then 0 else 1;
+  v_66 = (v_65 = 7);
+  v_65 = if v_63 then 4 else v_64;
+  v_64 = pre x;
+  v_63 = true fby false;
+  v_62 = once(v_61);
+  v_61 = (mx >= 800);
+  mx = Interface.read_analog(16);
+  my = (1023 - v);
+  v = Interface.read_analog(15)
+tel
+
+node fifo(step : bool; i : int)
+returns (o0 : int; o1 : int; o2 : int; o3 : int; o4 : int; o5 : int;
+          o6 : int; o7 : int)
+var v : bool; v_116 : int; v_117 : int; v_118 : bool; v_119 : int;
+    v_120 : int; v_121 : bool; v_122 : int; v_123 : int; v_124 : bool;
+    v_125 : int; v_126 : int; v_127 : bool; v_128 : int; v_129 : int;
+    v_130 : bool; v_131 : int; v_132 : int; v_133 : bool; v_134 : int;
+    v_135 : int; v_136 : bool; v_137 : int; v_138 : int;
+let
+  o7 = if v_136 then 0 else v_138;
+  v_138 = pre v_137;
+  v_137 = if step then o6 else o7;
+  v_136 = true fby false;
+  o6 = if v_133 then 0 else v_135;
+  v_135 = pre v_134;
+  v_134 = if step then o5 else o6;
+  v_133 = true fby false;
+  o5 = if v_130 then 0 else v_132;
+  v_132 = pre v_131;
+  v_131 = if step then o4 else o5;
+  v_130 = true fby false;
+  o4 = if v_127 then 0 else v_129;
+  v_129 = pre v_128;
+  v_128 = if step then o3 else o4;
+  v_127 = true fby false;
+  o3 = if v_124 then 0 else v_126;
+  v_126 = pre v_125;
+  v_125 = if step then o2 else o3;
+  v_124 = true fby false;
+  o2 = if v_121 then 0 else v_123;
+  v_123 = pre v_122;
+  v_122 = if step then o1 else o2;
+  v_121 = true fby false;
+  o1 = if v_118 then 0 else v_120;
+  v_120 = pre v_119;
+  v_119 = if step then o0 else o1;
+  v_118 = true fby false;
+  o0 = if v then 0 else v_117;
+  v_117 = pre v_116;
+  v_116 = if step then i else o0;
+  v = true fby false
+tel
+
+node graph(step : bool; i : int) returns (o : bool)
+var l7 : bool; l6 : bool; l5 : bool; l4 : bool; l3 : bool; l2 : bool;
+    l1 : bool; l0 : bool; i_7 : int; m7 : int; i_6 : int; m6 : int;
+    i_5 : int; m5 : int; i_4 : int; m4 : int; i_3 : int; m3 : int; i_2 : int;
+    m2 : int; i_1 : int; m1 : int; i_0 : int; m0 : int; v : bool;
+    v_139 : bool; v_140 : bool; v_141 : bool; v_142 : bool; v_143 : bool;
+    v_144 : bool; v_145 : bool; v_146 : bool; v_147 : bool; v_148 : bool;
+    v_149 : bool; v_150 : bool; v_151 : bool; v_152 : bool; v_153 : bool;
+    v_154 : bool; v_155 : bool; v_156 : bool; v_157 : bool; v_158 : bool;
+    v_159 : bool; v_160 : bool; v_161 : bool; v_162 : bool; v_163 : bool;
+    v_164 : bool; v_165 : bool; v_166 : bool; v_167 : bool; v_168 : bool;
+    v_169 : bool;
+let
+  o = true;
+  l7 = (v_166 or v_169);
+  v_169 = Interface.toggle_pixel(7, m7, false, v_168);
+  v_168 = not(v_167);
+  v_167 = (i_7 = m7);
+  v_166 = Interface.toggle_pixel(7, i_7, true, true);
+  l6 = (v_162 or v_165);
+  v_165 = Interface.toggle_pixel(6, m6, false, v_164);
+  v_164 = not(v_163);
+  v_163 = (i_6 = m6);
+  v_162 = Interface.toggle_pixel(6, i_6, true, true);
+  l5 = (v_158 or v_161);
+  v_161 = Interface.toggle_pixel(5, m5, false, v_160);
+  v_160 = not(v_159);
+  v_159 = (i_5 = m5);
+  v_158 = Interface.toggle_pixel(5, i_5, true, true);
+  l4 = (v_154 or v_157);
+  v_157 = Interface.toggle_pixel(4, m4, false, v_156);
+  v_156 = not(v_155);
+  v_155 = (i_4 = m4);
+  v_154 = Interface.toggle_pixel(4, i_4, true, true);
+  l3 = (v_150 or v_153);
+  v_153 = Interface.toggle_pixel(3, m3, false, v_152);
+  v_152 = not(v_151);
+  v_151 = (i_3 = m3);
+  v_150 = Interface.toggle_pixel(3, i_3, true, true);
+  l2 = (v_146 or v_149);
+  v_149 = Interface.toggle_pixel(2, m2, false, v_148);
+  v_148 = not(v_147);
+  v_147 = (i_2 = m2);
+  v_146 = Interface.toggle_pixel(2, i_2, true, true);
+  l1 = (v_142 or v_145);
+  v_145 = Interface.toggle_pixel(1, m1, false, v_144);
+  v_144 = not(v_143);
+  v_143 = (i_1 = m1);
+  v_142 = Interface.toggle_pixel(1, i_1, true, true);
+  l0 = (v or v_141);
+  v_141 = Interface.toggle_pixel(0, m0, false, v_140);
+  v_140 = not(v_139);
+  v_139 = (i_0 = m0);
+  v = Interface.toggle_pixel(0, i_0, true, true);
+  m7 = 0 fby i_7;
+  m6 = 0 fby i_6;
+  m5 = 0 fby i_5;
+  m4 = 0 fby i_4;
+  m3 = 0 fby i_3;
+  m2 = 0 fby i_2;
+  m1 = 0 fby i_1;
+  m0 = 0 fby i_0;
+  (i_0, i_1, i_2, i_3, i_4, i_5, i_6, i_7) = fifo(step, i)
+tel
+
+node main returns (o : bool)
+var dist : int; received : bool; joy : bool; distance : bool; period : int;
+    on_off : bool; p : bool; n : bool; m : bool; k : bool; j : int; i : bool;
+    v : int; v_170 : int; v_171 : bool; v_172 : bool; v_173 : bool;
+    v_174 : bool; v_175 : bool; v_176 : bool; v_177 : bool; v_178 : bool;
+    v_179 : bool; v_180 : int; v_181 : int; v_182 : int;
+let
+  joy = graph(v_177, v_182);
+  v_182 = Interface.map_int(v_181, 0, 100, 0, 7);
+  v_181 = if v_178 then 0 else v_180;
+  v_180 = if v_179 then dist else 100;
+  v_179 = (dist < 100);
+  v_178 = (dist < 0);
+  v_177 = (received & v_176);
+  v_176 = not(v_175);
+  v_175 = (v_173 or v_174);
+  v_174 = (dist > 100);
+  v_173 = (dist < 0);
+  p = Interface.print_int(dist, received, true);
+  (received, dist) = distance();
+  distance = true;
+  n = Interface.print_int(period, false, true);
+  o = led_control(4, v_172);
+  v_172 = Interface.read_pin_state(5);
+  m = led_control(6, on_off);
+  k = led(period, 3, true);
+  i = led(32, 2, on_off);
+  on_off = toggle_node(v_171);
+  v_171 = Interface.read_pin_state(5);
+  j = declare_once(5, false);
+  period = (v_170 + 1);
+  v_170 = Interface.div(v, 16);
+  v = Interface.read_analog(14)
+tel
+

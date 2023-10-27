@@ -51,7 +51,7 @@ pub fn bootstrap() noreturn {
     interrupt.sei();
 
     // Attach the step function to the timer1 interrupt
-    interrupt.attachInterrupt(13, @intFromPtr(@import("main.zig").step));
+    interrupt.attachInterrupt(13, @intFromPtr(&@import("main.zig").step));
     // Initializes the timer1 interrupt (B overflow)
     timer.initTimer1(10_000);
 

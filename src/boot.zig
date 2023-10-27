@@ -5,7 +5,8 @@ pub const Serial = Libz.Serial;
 /// Entry point of the program
 /// It initializes the memory and ISRs and then jumps into the
 // bootstrap main function
-pub export fn _start() callconv(.Naked) noreturn {
+// callconv(.Naked)
+pub export fn _start() noreturn {
     @call(.always_inline, copyDataToRAM, .{});
     @call(.always_inline, clearBSS, .{});
     //copyDataToRAM();
@@ -23,7 +24,7 @@ pub export fn _start() callconv(.Naked) noreturn {
 }
 
 /// Override panic function
-pub fn panic(msg: []const u8, stack_trace: ?*std.builtin.StackTrace) noreturn {
+pub fn panic(msg: []const u8, stack_trace: ?*std.builtin.StackTrace, _: ?usize) noreturn {
     Libz.Interrupts.cli();
     _ = stack_trace;
     Serial.init(19200);

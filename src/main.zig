@@ -2,7 +2,7 @@ const print = @import("std").debug.print;
 const Top = @import("top.zig");
 
 var mem: Top.Top__main_mem = undefined;
-var step_zig: isize = undefined;
+var step_zig: usize = undefined;
 var _res: Top.Top__main_out = undefined;
 
 pub fn main() isize {

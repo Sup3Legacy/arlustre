@@ -24,19 +24,19 @@ pub const int_of_float_out = struct { i: isize };
 pub const float_of_int_out = struct { f: f32 };
 
 pub fn change_pin_state_step(pin: isize, state: bool, out: *change_pin_state_out) void {
-    Libz.GpIO.DIGITAL_WRITE(@intCast(u8, pin), if (state) .HIGH else .LOW) catch {};
+    Libz.GpIO.DIGITAL_WRITE(@intCast(pin), if (state) .HIGH else .LOW) catch {};
     _ = out;
 }
 
 pub fn read_pin_state_step(pin: isize, out: *read_pin_state_out) void {
-    out.b = Libz.GpIO.DIGITAL_READ(@intCast(u8, pin)) catch {
+    out.b = Libz.GpIO.DIGITAL_READ(@intCast(pin)) catch {
         return;
     } == .HIGH;
 }
 
 pub fn declare_io_step(pin: isize, mode: bool, do_declare: bool, out: *declare_io_out) void {
     if (do_declare) {
-        Libz.GpIO.DIGITAL_MODE(@intCast(u8, pin), if (mode) .OUTPUT else .INPUT) catch {};
+        Libz.GpIO.DIGITAL_MODE(@intCast(pin), if (mode) .OUTPUT else .INPUT) catch {};
     }
     _ = out;
 }
@@ -68,7 +68,7 @@ pub fn change_timer0_freq(period: isize, out: *change_timer0_out) void {
 
 pub fn print_int_step(i: isize, do_print: bool, endl: bool, out: *print_int_out) void {
     if (do_print) {
-        Libz.Serial.write_u16(@intCast(usize, i));
+        Libz.Serial.write_u16(@intCast(i));
         if (endl) {
             Libz.Serial.write("\n\r");
         }
@@ -78,8 +78,8 @@ pub fn print_int_step(i: isize, do_print: bool, endl: bool, out: *print_int_out)
 
 pub fn print_long_step(l: isize, h: isize, do_print: bool, endl: bool, out: *print_long_out) void {
     if (do_print) {
-        Libz.Serial.write_u16(@intCast(usize, h));
-        Libz.Serial.write_u16(@intCast(usize, l));
+        Libz.Serial.write_u16(@intCast(h));
+        Libz.Serial.write_u16(@intCast(l));
         if (endl) {
             Libz.Serial.write("\n\r");
         }
@@ -88,7 +88,7 @@ pub fn print_long_step(l: isize, h: isize, do_print: bool, endl: bool, out: *pri
 }
 
 pub fn read_analog_step(pin: isize, out: *read_analog_out) void {
-    out.i = @intCast(isize, Libz.GpIO.ANALOG_READ(@intCast(u8, pin)));
+    out.i = @intCast(Libz.GpIO.ANALOG_READ(@intCast(pin)));
 }
 
 pub fn random_step(at_least: isize, less_than: isize, out: *random_out) void {
@@ -98,20 +98,25 @@ pub fn random_step(at_least: isize, less_than: isize, out: *random_out) void {
 //return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 
 pub fn map_int_step(x: isize, in_min: isize, in_max: isize, out_min: isize, out_max: isize, out: *map_int_out) void {
-    out.i = @floatToInt(isize, (@intToFloat(f32, x) - @intToFloat(f32, in_min)) * (@intToFloat(f32, out_max) - @intToFloat(f32, out_min)) / (@intToFloat(f32, in_max) - @intToFloat(f32, in_min)) + @intToFloat(f32, out_min));
+    var x_float: f32 = @floatFromInt(x);
+    var in_min_float: f32 = @floatFromInt(in_min);
+    var in_max_float: f32 = @floatFromInt(in_max);
+    var out_min_float: f32 = @floatFromInt(out_min);
+    var out_max_float: f32 = @floatFromInt(out_max);
+    out.i = @intFromFloat((x_float - in_min_float) * (out_max_float - out_min_float) / (in_max_float - in_min_float) + out_min_float);
 }
 
 pub fn toggle_pixel_step(x: isize, y: isize, state: bool, do_step: bool, out: *toggle_pixel_out) void {
     if (do_step) {
-        Libz.Max7219.toggle_pixel(@intCast(u8, x), @intCast(u8, y), state);
+        Libz.Max7219.toggle_pixel(@intCast(x), @intCast(y), state);
         Libz.Max7219.draw();
         out.b = true;
     }
 }
 
 pub fn time_step(inp: isize, state: isize, do_step: bool, out: *time_out) void {
-    var in_pin = @intCast(u8, inp);
-    Libz.GpIO.DIGITAL_MODE(@intCast(u8, inp), .INPUT) catch {};
+    var in_pin: u8 = @intCast(inp);
+    Libz.GpIO.DIGITAL_MODE(@intCast(inp), .INPUT) catch {};
 
     if (do_step) {
         Interrupts.setReference(in_pin);
@@ -128,10 +133,10 @@ pub fn time_step(inp: isize, state: isize, do_step: bool, out: *time_out) void {
         out.b = did_occur;
         if (did_occur) {
             var diff = Interrupts.getLastTime(in_pin) -% Interrupts.getTimeReference(in_pin);
-            var low = @intCast(usize, diff & 0x0000ffff);
-            var high = @intCast(usize, (diff & 0xffff0000) >> 16);
-            out.l = @bitCast(isize, low);
-            out.h = @bitCast(isize, high);
+            var low: u16 = @intCast(diff & 0x0000ffff);
+            var high: u16 = @intCast((diff & 0xffff0000) >> 16);
+            out.l = @bitCast(low);
+            out.h = @bitCast(high);
             Interrupts.resetPinInterrupt(in_pin);
         } else {
             // Both high and low value conserve their value
@@ -140,9 +145,9 @@ pub fn time_step(inp: isize, state: isize, do_step: bool, out: *time_out) void {
 }
 
 pub fn time_pulse_step(outp: isize, inp: isize, signal_width: isize, state: isize, do_step: bool, out: *time_pulse_out) void {
-    var in_pin = @intCast(u8, inp);
-    Libz.GpIO.DIGITAL_MODE(@intCast(u8, outp), .OUTPUT) catch {};
-    Libz.GpIO.DIGITAL_MODE(@intCast(u8, inp), .INPUT) catch {};
+    var in_pin: u8 = @intCast(inp);
+    Libz.GpIO.DIGITAL_MODE(@intCast(outp), .OUTPUT) catch {};
+    Libz.GpIO.DIGITAL_MODE(@intCast(inp), .INPUT) catch {};
 
     if (do_step) {
         Interrupts.setReference(in_pin);
@@ -152,9 +157,9 @@ pub fn time_pulse_step(outp: isize, inp: isize, signal_width: isize, state: isiz
         Interrupts.togglePinInterrupt(in_pin, true);
 
         // Send the signal
-        GPIO.DIGITAL_WRITE(@intCast(u8, outp), .HIGH) catch {};
-        Libz.Utilities.delay(@intCast(u32, signal_width));
-        GPIO.DIGITAL_WRITE(@intCast(u8, outp), .LOW) catch {};
+        GPIO.DIGITAL_WRITE(@intCast(outp), .HIGH) catch {};
+        Libz.Utilities.delay(@intCast(signal_width));
+        GPIO.DIGITAL_WRITE(@intCast(outp), .LOW) catch {};
 
         out.b = false;
         out.l = 0;
@@ -164,10 +169,10 @@ pub fn time_pulse_step(outp: isize, inp: isize, signal_width: isize, state: isiz
         out.b = did_occur;
         if (did_occur) {
             var diff = Interrupts.getLastTime(in_pin) -% Interrupts.getTimeReference(in_pin);
-            var low = @intCast(usize, diff & 0x0000ffff);
-            var high = @intCast(usize, (diff & 0xffff0000) >> 16);
-            out.l = @bitCast(isize, low);
-            out.h = @bitCast(isize, high);
+            var low: usize = @intCast(diff & 0x0000ffff);
+            var high: usize = @intCast((diff & 0xffff0000) >> 16);
+            out.l = @bitCast(low);
+            out.h = @bitCast(high);
             Interrupts.resetPinInterrupt(in_pin);
         } else {
             // Both high and low value conserve their value
@@ -176,9 +181,9 @@ pub fn time_pulse_step(outp: isize, inp: isize, signal_width: isize, state: isiz
 }
 
 pub fn int_of_float_step(f: f32, out: *int_of_float_out) void {
-    out.i = @floatToInt(isize, f);
+    out.i = @intFromFloat(f);
 }
 
 pub fn float_of_int_step(i: isize, out: *float_of_int_out) void {
-    out.f = @intToFloat(f32, i);
+    out.f = @floatFromInt(i);
 }
